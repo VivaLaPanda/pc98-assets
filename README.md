@@ -155,6 +155,11 @@ ledger.csv     fal spend (no secrets)
 Gitignored: `.venv/`, `.preview/` and `.scratch/` (temporary pages and files), `assets/*/refs/gen/`,
 `assets/*/refs/trace/`, `assets/*/out/scratch/`.
 
+## The cover filter and style guide
+
+`filter/` holds the PC-98 style guide (start there before drawing anything), a lint for its measurable rules, and the
+harness behind the site's in-browser cover filter `js/pc98.js`. See `filter/README.md`.
+
 ## Assets so far
 
 - `assets/blog-icon/`: the blog's nav icon, three candidates (newspaper recommended, scroll, quill), with blind-test
