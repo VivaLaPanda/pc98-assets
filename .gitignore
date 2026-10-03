@@ -1,0 +1,17 @@
+# environments
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# temporary preview pages and scratch files
+.preview/
+.scratch/
+
+# generator downloads and raw traces: large, regenerable from the ledger's prompts (the contact sheet refs/sheet.jpg
+# and the style reference are tracked)
+assets/*/refs/gen/
+assets/*/refs/trace/
+assets/*/out/scratch/
+# retina screenshots are big; the 1x ones and the contact sheet are enough in git
+assets/*/out/review/*/context@2x.png

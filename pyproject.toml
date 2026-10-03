@@ -1,0 +1,21 @@
+[project]
+name = "pc98"
+version = "0.1.0"
+description = "PC-98-style art workspace for vivalapanda.moe: draw in code, check in the real page"
+authors = [
+    { name = "VivaLaPanda", email = "adrianrsmith93@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5.3",
+    "pillow>=12.3.0",
+    "requests>=2.34.2",
+    "websocket-client>=1.9.2",
+]
+
+[project.scripts]
+pc98 = "pc98:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
