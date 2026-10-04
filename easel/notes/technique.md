@@ -66,3 +66,19 @@ Traced shapes from an image model, soft generic "lo-fi room" composition, flat f
 - **Halos over dithered or printed surfaces go in half steps** (solid, checker, solid), never quarter tiles.
 - **Keep the hierarchy**: check value and squint at 1x after every light or palette change. Lights inside an
   inserted picture are given bright inks on purpose so the intended focal point keeps leading.
+
+## Adding objects and extending a real picture (learned finishing Panda's Room)
+
+- **A flat rectangle seen askew in perspective reads as a diamond** once neither edge pair is near horizontal (a phone
+  on a bed at 28 or 62 degrees looked like a crystal). Turn it until one pair is close to the picture's horizontal.
+- **Keep new details crisp where they are the read**: run the density journey on a new object's contour ring, not
+  its face. Over the whole object it took a plush's catchlights and a phone's bezel.
+- **Passages share one namespace.** A short global (SIL, W, ROWS) in a late passage silently replaces an early
+  passage's; prefix new names by object (PH_, TV_, PANDA_).
+- **Extending a canvas**: continue each surface from its own pixels at an 8-row/8-column offset (the tile phase), not
+  from a fresh tile; carry vertical things (posts, legs, doors) down from themselves; end receding edges on the VP.
+  Recompute traced light with the same functions on a grid that covers the new rows, at the old reference. A traced
+  light can open new lobes past the old edge (a second fan beyond a shadow): keep the old fan and fade it, so the
+  seam carries the same bands and the frame's edge doesn't get a new bright puddle.
+- **Then look for the seam at 1x, 2x and 3x** beside the picture's own top and bottom edges. If you can find it,
+  so can everyone.

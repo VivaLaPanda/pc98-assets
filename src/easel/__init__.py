@@ -108,6 +108,7 @@ def run(name, upto=None):
             traceback.print_exc()
             raise SystemExit(f'passage {p.name} failed; nothing written')
         steps.append((p.stem, cv.rgb().copy()))
+    cv.ns = ns              # the passages' names (masks, geometry), for exporters and pieces built on this one
     return cv, steps
 
 

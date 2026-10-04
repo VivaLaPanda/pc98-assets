@@ -1,0 +1,32 @@
+# panda-room: the finished Panda's Room scene. mahou-pc (the night room with the computer, the plush, the phone, the
+# butterfly and the TV) extended to the scene window's 740:528 with a ceiling strip above and a floor strip below,
+# plus the object masks the site's hotspots and lit sprites are cut from (export.py). out/ is gitignored: it contains
+# the third-party room.
+[canvas]
+w = 500
+h = 357
+at = [0, 0]
+seed = 5
+
+[look]
+zoom = 2
+detail_zoom = 3
+focus = [0, 0, 500, 60]              # the ceiling strip
+measure = [0, 280, 500, 357]
+regions = { ceiling = [0, 0, 250, 60], floor = [120, 290, 420, 357], bed = [0, 270, 200, 357] }
+
+[[refs]]
+path = "explore/places/mahou_bedroom.png"
+box = [0, 0, 160, 60]
+label = "the room's own top edge (day)"
+
+[[refs]]
+path = "explore/places/mahou_bedroom.png"
+box = [100, 208, 260, 268]
+label = "the room's own bottom edge (day)"
+
+[site]
+page = "room.html"
+path = "img/room/room@4x.png"
+scale = 4
+hide = ["#room-hotspots"]

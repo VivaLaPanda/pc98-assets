@@ -29,12 +29,5 @@ path = "computer_crop.gif"
 box = [0, 60, 100, 160]
 label = "computer_crop CRT"
 
-[site]
-page = "room.html"
-path = "img/room/room@4x.png"
-scale = 4
-# the live page's overlays drawn for the old art (twinkle strip, hover/glint sprites) are hidden in previews
-blank = ["img/room/twinkle@4x.png", "img/room/lit/window@4x.png", "img/room/lit/phone@4x.png",
-         "img/room/lit/pc@4x.png", "img/room/lit/newspaper@4x.png", "img/room/lit/bookshelf@4x.png",
-         "img/room/lit/butterfly@4x.png", "img/room/lit/tv@4x.png", "img/room/lit/plush@4x.png"]
-hide = ["#room-hotspots"]             # and its night shade, masked by the old art's hotspot polygons
+# The site's scene is the panda-room piece now (this room extended to 740:528, with the object masks and export.py);
+# preview that one: `easel preview panda-room`.
