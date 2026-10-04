@@ -74,8 +74,11 @@ what, in this night room.
 | back to room | Okkei! | verbatim |  | CHAOS;CHILD / Onoe Serika | https://vndb.org/v14018 (VNDB quote q4339) |
 | all seen | Congratulations! You found everything~! | adapted ("Congratulations!" + plain) | Congratulations! | Katawa Shoujo / Misha | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-thursday.rpy#L2656 |
 
-**New objects (2026-10-04, round 3; dialogue written before their hotspots exist, so they live in a snippet until the
-art fork's art lands).** All original lines in the same register, except where noted.
+**New objects (2026-10-04, round 3; in the room with art v2).** All original lines in the same register, except where
+noted. The room is only for places elsewhere on the web, so the stereo (/radio.html) and recipe binder (/recipes.html)
+were dropped before they reached the page (the sidenav has the site's own pages); their lines are kept below, struck
+through, in case they're wanted elsewhere. The console's id in room-data.js is `controller` (the art's hotspot name).
+LessWrong (the navy-and-gold tome on the bed) and LinkedIn (the blazer and red tie on the chair back) came with art v2.
 
 | slot | final line | kind | original (if changed) | work / character | source |
 |---|---|---|---|---|---|
@@ -83,14 +86,14 @@ art fork's art lands).** All original lines in the same register, except where n
 | letter click 1 | You can always write to me. | original (VN register) |  | - | - |
 | letter click 2 | I'm at me@panda.moe. I read everything! | original (plain, functional) |  | - | - |
 | letter repeat | Write to me, okay? I'll write back. | original |  | - | - |
-| stereo hover | My stereo! It's always playing something. | original |  | - | - |
-| stereo click 1 | That's my radio station. It runs all night. | original (plain) |  | - | - |
-| stereo click 2 | Wanna listen together? | original (VN register) |  | - | - |
-| stereo repeat | Turn it up! ...Not too loud. The neighbors. | original |  | - | - |
-| recipes hover | My recipe binder. It's... a little stained. | original |  | - | - |
-| recipes click 1 | I'm not a great cook. But these all work! | original |  | - | - |
-| recipes click 2 | Want to try one? The pancakes are easy. | original (the first recipe on /recipes.html) |  | - | - |
-| recipes repeat | Hungry? Me too. Let's cook something. | original |  | - | - |
+| ~~stereo hover~~ | My stereo! It's always playing something. | dropped (site page, not external) |  | - | - |
+| ~~stereo click 1~~ | That's my radio station. It runs all night. | dropped (site page, not external) |  | - | - |
+| ~~stereo click 2~~ | Wanna listen together? | dropped (site page, not external) |  | - | - |
+| ~~stereo repeat~~ | Turn it up! ...Not too loud. The neighbors. | dropped (site page, not external) |  | - | - |
+| ~~recipes hover~~ | My recipe binder. It's... a little stained. | dropped (site page, not external) |  | - | - |
+| ~~recipes click 1~~ | I'm not a great cook. But these all work! | dropped (site page, not external) |  | - | - |
+| ~~recipes click 2~~ | Want to try one? The pancakes are easy. | dropped (site page, not external) |  | - | - |
+| ~~recipes repeat~~ | Hungry? Me too. Let's cook something. | dropped (site page, not external) |  | - | - |
 | console hover | My console! Don't look at my hours played. | original |  | - | - |
 | console click 1 | I play games rarely. ...Very rarely. | interpolated (Panda's own Steam bio) | I play games rarely. | Panda's Steam profile summary | https://steamcommunity.com/id/vivalapanda |
 | console click 2 | I'll go easy on you. Maybe. | original |  | - | - |
@@ -98,5 +101,17 @@ art fork's art lands).** All original lines in the same register, except where n
 | poster hover | Don't judge my poster. She's a hero! | original |  | - | - |
 | poster line 1 | That's my favorite magical girl! | original |  | - | - |
 | poster line 2 | ...I've rewatched it more than I'll admit. | original |  | - | - |
+| lesswrong hover | That tome? It changed how I think. Really. | original |  | - | - |
+| lesswrong click 1 | Bedtime reading. Very light, as you can see. | original (a thick book, lying on the bed) |  | - | - |
+| lesswrong click 2 | My long-winded thoughts live on LessWrong. | original (plain, functional) |  | - | - |
+| lesswrong repeat | Change my mind! Really. Bring evidence. | original |  | - | - |
+| linkedin hover | My interview blazer. It's seen things. | original |  | - | - |
+| linkedin click 1 | I put it on when I have to be an adult. | original (the "adulting" joke) |  | - | - |
+| linkedin click 2 | My job title? Mad scientist. ...Sort of. | interpolated | I am the mad scientist, Hououin Kyouma! | Steins;Gate / Okabe Rintarou | https://vndb.org/v2002 |
+| linkedin repeat | Business casual is a lie, you know. | original |  | - | - |
 
-Totals (page + new objects): 32 original, 16 verbatim, 7 translated, 6 adapted, 6 interpolated.
+Totals (all 67 lines on the page, art v2): 31 original, 16 verbatim, 7 translated, 6 adapted, 7 interpolated.
+
+**Art v2 audit (2026-10-04).** Every line re-read against the v2 art (moonlit night, butterfly on the left curtain, TV
+and console on the floor, phone and tome on the bed, blazer on the chair). None contradicts it; one draft LessWrong
+line about a broken spine was replaced, since the tome is drawn intact.
