@@ -16,45 +16,53 @@ burst error (PC-98, 1995). Candidates that turned out to be fan-art captions, a 
 (not the game) were dropped. Doukyuusei, YU-NO and Policenauts lines couldn't be sourced in Japanese, so none are used.
 The bookshelf hover is now from the owner's side (Panda offering her shelf), not a visitor finding books.
 
+**Round 3 (2026-10-04): interpolation.** The user: "dialogue should interpolate VN dialogue and stuff that actually
+makes sense here", and disliked the memes line. So lines are no longer verbatim-only: a real line is kept where it fits
+this room and this object as-is, adapted or **interpolated** (a real line reshaped to say something true about the
+object, its source kept) where it nearly fits, and replaced with an **original** line in the same plain, reactive
+register where no real line made sense. Every line was re-read for who is speaking (Panda, the owner, to a guest), about
+what, in this night room.
+
 | slot | final line | kind | original (if changed) | work / character | source |
 |---|---|---|---|---|---|
 | greeting 1 | Welcome, traveler, to my room of mysteries. | verbatim |  | Rewrite / Senri Akane | https://vndb.org/v751 (VNDB quote q2761) |
 | greeting 2 | Don't be shy now, come on in. | verbatim |  | Katawa Shoujo / Sae | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a3-rin.rpy#L3906 |
-| greeting 3 | If you get lost, press LOOK, okay? | original (plain) |  | - | - |
+| greeting 3 | Poke around all you like! Lost? Press LOOK. | original (plain; teaches hover/click and LOOK) |  | - | - |
 | window hover | E-everything looks so p-pretty at night... | verbatim | E-everything looks so p-pretty at night… (ellipsis as three dots) | Katawa Shoujo / Hanako Ikezawa | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a3-hanako.rpy#L5341 |
 | window click 1 | The town, the people... we're all family. | adapted (dropped leading "Yes.") | Yes. The town, the people... we're all family. | CLANNAD / Furukawa Nagisa | https://vndb.org/v4 (VNDB quote q1990) |
-| window click 2 | I talk about it on Twitter. A lot. | original (plain) |  | - | - |
+| window click 2 | I tweet about it way too much. Mostly zoning. | original (plain) |  | - | - |
 | window repeat | Pleeease... take me somewhere~ | translated (from Japanese) | 夕子「お願～い。どっか連れてって～」 | Tokimeki Memorial (1994) / Asahina Yuko | https://dic.pixiv.net/a/%E6%9C%9D%E6%97%A5%E5%A5%88%E5%A4%95%E5%AD%90 |
-| phone hover | I'm so gonna text you weird memes. | adapted (him → you) | "I'm so gonna text him weird memes." | Doki Doki Switcheroo! | https://vndb.org/v24173 (VNDB quote q7506) |
-| phone click 1 | You can call me vivalapanda. | adapted (Rin → vivalapanda) | You can call me Rin. | Katawa Shoujo / Rin Tezuka | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-wednesday.rpy#L2836 |
-| phone click 2 | Don't worry, your secret's safe with me. | verbatim |  | Katawa Shoujo / Misha | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-emi.rpy#L1080 |
+| phone hover | Eh? My phone's buzzing... is that you? | original (VN register; replaces the memes line the user disliked) |  | - | - |
+| phone click 1 | On Discord, you can call me vivalapanda. | interpolated (Discord added so the line says where) | You can call me Rin. | Katawa Shoujo / Rin Tezuka | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-wednesday.rpy#L2836 |
+| phone click 2 | Secrets go on Signal. They're safe with me. | interpolated (made to say what Signal is for) | Don't worry, your secret's safe with me. | Katawa Shoujo / Misha | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-emi.rpy#L1080 |
 | phone repeat | If friends gossip about us... how embarrassing. | translated + adapted (dropped "if we walk home together" to fit the box) | 藤崎詩織「一緒に帰って、友達に噂とかされると、恥ずかしいし…。」 | Tokimeki Memorial (1994) / Fujisaki Shiori | https://futaman.futabanet.jp/articles/-/126479 ; https://dic.pixiv.net/a/%E8%97%A4%E5%B4%8E%E8%A9%A9%E7%B9%94 |
-| pc hover | Oh crap... fell asleep at the computer again. | verbatim |  | Fission Frontier / Rashomon Nao | https://vndb.org/v55716 (VNDB quote q4788) |
-| pc click 1 | But my lover has always been my computer. | verbatim |  | SWAN SONG / Kuwagata Takuma | https://vndb.org/v914 (VNDB quote q5626) |
+| pc hover | I keep falling asleep at that computer... | interpolated (owner talking about her own PC, not waking at it) | Oh crap... fell asleep at the computer again. | Fission Frontier / Rashomon Nao | https://vndb.org/v55716 (VNDB quote q4788) |
+| pc click 1 | My true love has always been my computer. | adapted (dropped the dangling "But") | But my lover has always been my computer. | SWAN SONG / Kuwagata Takuma | https://vndb.org/v914 (VNDB quote q5626) |
 | pc click 2 | Everything I make ends up on GitHub. | original (plain) |  | - | - |
-| pc repeat | This is... An Infinitely Repeating Game. | verbatim |  | Subarashiki Hibi ~Furenzoku Sonzai~ | https://vndb.org/v3144 (VNDB quote q3379) |
-| newspaper hover | Heh. Who knew newspapers could be interesting? | adapted (paper bags → newspapers) | Heh. Who knew paper bags could be interesting? | Famicom Tantei Club: Emio / Protagonist | https://vndb.org/v51838 (VNDB quote q3429) |
+| pc repeat | Back again? It's an infinitely repeating game. | interpolated (now about you coming back) | This is... An Infinitely Repeating Game. | Subarashiki Hibi ~Furenzoku Sonzai~ | https://vndb.org/v3144 (VNDB quote q3379) |
+| newspaper hover | Heh. Who knew my essays could be interesting? | adapted (paper bags → my essays: the paper is her own Substack) | Heh. Who knew paper bags could be interesting? | Famicom Tantei Club: Emio / Protagonist | https://vndb.org/v51838 (VNDB quote q3429) |
 | newspaper click 1 | I write about cities on my Substack. | original (plain) |  | - | - |
 | newspaper click 2 | Well, you can read it at your own pace. | verbatim |  | Doki Doki Literature Club! / Yuri | https://github.com/Monika-After-Story/DDLCModTemplate/blob/master/original_story_scripts/script-ch1.rpy#L118 |
 | newspaper repeat | Are you ready to continue reading? | verbatim |  | Doki Doki Literature Club! / Yuri | https://github.com/Monika-After-Story/DDLCModTemplate/blob/master/original_story_scripts/script-ch23.rpy#L46 |
 | bookshelf hover | If it's books you want, leave it to me. | translated + adapted (女の子の情報 "info on girls" → books; dropped the opening "Nah, don't mention it!") | 早乙女好雄「なーにいいってことよ！女の子の情報なら、俺に任せてくれよ。」 | Tokimeki Memorial (1994) / Saotome Yoshio (the game's opening exchange) | https://dic.pixiv.net/a/%E8%97%A4%E5%B4%8E%E8%A9%A9%E7%B9%94 |
 | bookshelf click 1 | My reading list isn't ready yet. Soon! | original (plain) |  | - | - |
 | bookshelf click 2 | I barely got to do any reading today, so... | verbatim |  | Doki Doki Literature Club! / Natsuki | https://github.com/Monika-After-Story/DDLCModTemplate/blob/master/original_story_scripts/script-ch3.rpy#L916 |
-| bookshelf repeat | Why would you waste that on the top shelf? | verbatim |  | Doki Doki Literature Club! / Natsuki | https://github.com/Monika-After-Story/DDLCModTemplate/blob/master/original_story_scripts/script-exclusives-natsuki.rpy#L332 |
+| bookshelf repeat | Still not ready! Reading takes time, okay? | original (replaces a top-shelf line that didn't fit) |  | - | - |
 | butterfly hover | I love butterflies. They are the best animal. | verbatim |  | Katawa Shoujo / Rin Tezuka | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-rin.rpy#L7126 |
 | butterfly click 1 | That one's my Bluesky. I'm there sometimes. | original (plain) |  | - | - |
 | butterfly click 2 | It wouldn't be so bad to be the sky. | verbatim |  | Katawa Shoujo / Rin Tezuka | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-rin.rpy#L6436 |
-| butterfly repeat | Chicken? Why would I be a bird? | verbatim |  | Tsukihime -A piece of blue glass moon- | https://vndb.org/v17909 (VNDB quote q578) |
+| butterfly repeat | Why would it be a bird? It's a butterfly! | interpolated (a nod to the bird in the window: Twitter vs Bluesky) | Chicken? Why would I be a bird? | Tsukihime -A piece of blue glass moon- | https://vndb.org/v17909 (VNDB quote q578) |
 | tv hover | You've found the television, then. | verbatim |  | Katawa Shoujo / Lilly Satou | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a3-lilly.rpy#L2234 |
-| tv click 1 | That's where I log all the movies I watch. | original (plain) |  | - | - |
+| tv click 1 | Every movie I watch goes on my Letterboxd. | original (plain; the TV isn't where she logs) |  | - | - |
 | tv click 2 | Let's go watch! | verbatim |  | Katawa Shoujo / Yuuko Shirakawa | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-hanako.rpy#L635 |
 | tv repeat | It's pro wrestling! Woo! Woo! | translated (from Japanese) | 早乙女優美「プロレスだー。ウォーウォー。」 | Tokimeki Memorial (1994) / Saotome Yumi | https://dic.pixiv.net/a/%E6%97%A9%E4%B9%99%E5%A5%B3%E5%84%AA%E7%BE%8E |
 | plush hover | The panda says, 'Gao, gao!' | adapted (stegosaurus → panda) | The stegosaurus says, 'Gao, gao!' | AIR / Kamio Misuzu | https://vndb.org/v36 (VNDB quote q5552) |
-| plush line 1 | Of course the panda can't win. It's a panda. | verbatim |  | Toushin Toshi II (PC-98, 1990) | https://vndb.org/v889 (VNDB quote q3077) |
+| plush line 1 | He's the original Panda. I'm the sequel. | original (replaces a line that made no sense here) |  | - | - |
 | plush line 2 | Sorry, I was born cute. | verbatim |  | G-senjou no Maou | https://vndb.org/v211 (VNDB quote q446) |
 | idle 1 | It's nice and quiet in here, isn't it? | verbatim |  | Katawa Shoujo / Lilly Satou | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-sunday.rpy#L3709 |
 | idle 2 | Do... would you like some tea? | verbatim | Do… would you like some tea? (ellipsis as three dots) | Katawa Shoujo / Hanako Ikezawa | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-sunday.rpy#L4271 |
 | idle 3 | Luck comes to those who smile. So, smile! | translated (from Japanese; the end of a longer line) | 法条まりな「…笑う門には福来る、よ。さっ、笑って。」 | EVE burst error (1995, PC-98) / Houjou Marina | https://pro-botti.com/marina-famous_lines/ |
+| idle 4 | Hear that? The last train's heading home. | original (night, urbanist) |  | - | - |
 | empty 1 | Hm? Are you talking to moi? | verbatim |  | AI: The Somnium Files | https://vndb.org/v26532 (VNDB quote q9402) |
 | empty 2 | If you need something, just say it! | translated (from Japanese) | 清川望「用があるならはっきり言えよ」 | Tokimeki Memorial (Sega Saturn version, 1996) / Kiyokawa Nozomi | https://futaman.futabanet.jp/articles/-/126479?page=2 |
 | empty 3 | Hey, don't make that face. | translated (from Japanese; a clause from a longer line) | 法条まりな「…そんな顔しないの。…」 | EVE burst error (1995, PC-98) / Houjou Marina | https://pro-botti.com/marina-famous_lines/ |
@@ -66,4 +74,29 @@ The bookshelf hover is now from the owner's side (Panda offering her shelf), not
 | back to room | Okkei! | verbatim |  | CHAOS;CHILD / Onoe Serika | https://vndb.org/v14018 (VNDB quote q4339) |
 | all seen | Congratulations! You found everything~! | adapted ("Congratulations!" + plain) | Congratulations! | Katawa Shoujo / Misha | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-thursday.rpy#L2656 |
 
-Totals: 47 lines: 29 verbatim, 8 adapted, 10 original plain lines.
+**New objects (2026-10-04, round 3; dialogue written before their hotspots exist, so they live in a snippet until the
+art fork's art lands).** All original lines in the same register, except where noted.
+
+| slot | final line | kind | original (if changed) | work / character | source |
+|---|---|---|---|---|---|
+| letter hover | Letters are a lost art, you know. | original |  | - | - |
+| letter click 1 | You can always write to me. | original (VN register) |  | - | - |
+| letter click 2 | I'm at me@panda.moe. I read everything! | original (plain, functional) |  | - | - |
+| letter repeat | Write to me, okay? I'll write back. | original |  | - | - |
+| stereo hover | My stereo! It's always playing something. | original |  | - | - |
+| stereo click 1 | That's my radio station. It runs all night. | original (plain) |  | - | - |
+| stereo click 2 | Wanna listen together? | original (VN register) |  | - | - |
+| stereo repeat | Turn it up! ...Not too loud. The neighbors. | original |  | - | - |
+| recipes hover | My recipe binder. It's... a little stained. | original |  | - | - |
+| recipes click 1 | I'm not a great cook. But these all work! | original |  | - | - |
+| recipes click 2 | Want to try one? The pancakes are easy. | original (the first recipe on /recipes.html) |  | - | - |
+| recipes repeat | Hungry? Me too. Let's cook something. | original |  | - | - |
+| console hover | My console! Don't look at my hours played. | original |  | - | - |
+| console click 1 | I play games rarely. ...Very rarely. | interpolated (Panda's own Steam bio) | I play games rarely. | Panda's Steam profile summary | https://steamcommunity.com/id/vivalapanda |
+| console click 2 | I'll go easy on you. Maybe. | original |  | - | - |
+| console repeat | One more game. Then sleep. Probably. | original |  | - | - |
+| poster hover | Don't judge my poster. She's a hero! | original |  | - | - |
+| poster line 1 | That's my favorite magical girl! | original |  | - | - |
+| poster line 2 | ...I've rewatched it more than I'll admit. | original |  | - | - |
+
+Totals (page + new objects): 32 original, 16 verbatim, 7 translated, 6 adapted, 6 interpolated.
