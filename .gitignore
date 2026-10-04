@@ -26,3 +26,6 @@ easel/pieces/*/out/look.png
 easel/pieces/*/out/preview/
 easel/pieces/*/out/index.npy
 easel/pieces/mahou-pc/out/
+
+# full-page previews include third-party scene art; keep only the sidebar crops
+assets/room-icon/out/review/*/context*.png
