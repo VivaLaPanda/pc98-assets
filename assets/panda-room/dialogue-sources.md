@@ -19,7 +19,7 @@ The bookshelf hover is now from the owner's side (Panda offering her shelf), not
 | slot | final line | kind | original (if changed) | work / character | source |
 |---|---|---|---|---|---|
 | greeting 1 | Welcome, traveler, to my room of mysteries. | verbatim |  | Rewrite / Senri Akane | https://vndb.org/v751 (VNDB quote q2761) |
-| greeting 2 | Sorryyy! The train was totally packed... | translated (from Japanese) | 朝日奈夕子「ごっめ～ん！電車がモロ混みで……」 | Tokimeki Memorial (1994) / Asahina Yuko | https://dic.pixiv.net/a/%E6%9C%9D%E6%97%A5%E5%A5%88%E5%A4%95%E5%AD%90 ; her famous lateness line 「電車がモロ混みで遅刻しちゃった」, discussed by her voice actress: https://futaman.futabanet.jp/articles/-/67820 |
+| greeting 2 | Don't be shy now, come on in. | verbatim |  | Katawa Shoujo / Sae | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a3-rin.rpy#L3906 |
 | greeting 3 | If you get lost, press LOOK, okay? | original (plain) |  | - | - |
 | window hover | E-everything looks so p-pretty at night... | verbatim | E-everything looks so p-pretty at night… (ellipsis as three dots) | Katawa Shoujo / Hanako Ikezawa | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a3-hanako.rpy#L5341 |
 | window click 1 | The town, the people... we're all family. | adapted (dropped leading "Yes.") | Yes. The town, the people... we're all family. | CLANNAD / Furukawa Nagisa | https://vndb.org/v4 (VNDB quote q1990) |
