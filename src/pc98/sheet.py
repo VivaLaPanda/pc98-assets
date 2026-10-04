@@ -84,3 +84,40 @@ def image_sheet(paths, out, w=320, cols=4, labels=True):
     Path(out).parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out)
     return out
+
+
+def zoom_grid(src, out, box, z=4, beside=None):
+    """A gridded zoom of a region, labelled in native pixel coordinates: lines every 8 px (brighter every 32), numbers
+    every 16. For tracing: read a contour's vertices straight off the grid and type them into draw code. `beside`
+    puts the same region of a second image (the painting, say) next to it at the same zoom."""
+    from PIL import ImageDraw, ImageFont
+    x0, y0, x1, y1 = box
+    try:
+        font = ImageFont.truetype('/System/Library/Fonts/Menlo.ttc', 10)
+    except OSError:
+        font = ImageFont.load_default()
+
+    def one(path):
+        big = Image.open(path).convert('RGB').crop(box)
+        big = big.resize((big.width * z, big.height * z), Image.NEAREST)
+        d = ImageDraw.Draw(big)
+        for X in range((x0 + 7) // 8 * 8, x1, 8):
+            x = (X - x0) * z
+            d.line([(x, 0), (x, big.height)], fill=(255, 255, 0) if X % 32 == 0 else (100, 100, 0))
+            if X % 16 == 0:
+                d.text((x + 2, 2), str(X), font=font, fill=(255, 255, 0))
+        for Y in range((y0 + 7) // 8 * 8, y1, 8):
+            y = (Y - y0) * z
+            d.line([(0, y), (big.width, y)], fill=(255, 255, 0) if Y % 32 == 0 else (100, 100, 0))
+            if Y % 16 == 0:
+                d.text((2, y + 2), str(Y), font=font, fill=(255, 255, 0))
+        return big
+
+    a = one(src)
+    if beside:
+        b = one(beside)
+        sheet = Image.new('RGB', (a.width * 2 + 8, a.height), (30, 30, 30))
+        sheet.paste(a, (0, 0)); sheet.paste(b, (a.width + 8, 0))
+        a = sheet
+    a.save(out)
+    return out

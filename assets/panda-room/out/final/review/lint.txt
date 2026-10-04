@@ -1,0 +1,14 @@
+/Users/vivalapanda/git/pc98-assets/assets/panda-room/out/final/room.png
+  448x320  colours=16 (rule <=16)  on4096grid=16/16  black=True white=True
+  flat px=0.52  checker/dot px=0.072  mean dither-pair dE=0.137 (refs ~0.10-0.20)
+  4x4 blocks: 1/16:3% 2/16:4% 3+:24% 3/16:2% 4/16:18% 5/16:1% 6/16:4% 7/16:1% 8/16:6% flat:38%
+
+/Users/vivalapanda/git/vivalapanda.moe/img/explore/places/city_overlook.png
+  544x256  colours=16 (rule <=16)  on4096grid=2/16  black=True white=True
+  flat px=0.59  checker/dot px=0.113  mean dither-pair dE=0.338 (refs ~0.10-0.20)
+  4x4 blocks: 1/16:7% 2/16:7% 3+:16% 3/16:3% 4/16:6% 5/16:3% 6/16:4% 7/16:3% 8/16:6% flat:45%
+
+/Users/vivalapanda/git/vivalapanda.moe/img/explore/places/night_musician_bedroom.png
+  480x264  colours=14 (rule <=16)  on4096grid=14/14  black=True white=True
+  flat px=0.18  checker/dot px=0.342  mean dither-pair dE=0.250 (refs ~0.10-0.20)
+  4x4 blocks: 1/16:2% 2/16:3% 3+:50% 3/16:1% 4/16:7% 5/16:1% 6/16:3% 7/16:2% 8/16:22% flat:9%

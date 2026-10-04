@@ -138,6 +138,11 @@ def cmd_compose(a):
     print('wrote', compose(a.base, a.out, puts))
 
 
+def cmd_zoom(a):
+    from .sheet import zoom_grid
+    print('wrote', zoom_grid(a.image, a.out, tuple(a.box), a.z, a.beside))
+
+
 def cmd_blind(a):
     from .blind import make, JUDGE_LINEUP, JUDGE_PAIRS
     kp = make(a.out, a.real, a.new, seed=a.seed, lineups=a.lineups, judges=a.judges)
@@ -211,6 +216,10 @@ def main() -> None:
     s = sub.add_parser('compose', help='paste sprites into a site image at exact pixels (e.g. the frame)')
     s.add_argument('base'); s.add_argument('out')
     s.add_argument('--put', action='append', default=[], metavar='PNG@X,Y'); s.set_defaults(f=cmd_compose)
+
+    s = sub.add_parser('zoom', help='gridded zoom of a region in native coordinates, for tracing (--beside: a 2nd image)')
+    s.add_argument('image'); s.add_argument('out'); s.add_argument('box', nargs=4, type=int, metavar=('X0', 'Y0', 'X1', 'Y1'))
+    s.add_argument('-z', type=int, default=4); s.add_argument('--beside'); s.set_defaults(f=cmd_zoom)
 
     s = sub.add_parser('blind', help='blind-test images (lineups, pairs) of new art against real art, plus a key')
     s.add_argument('out'); s.add_argument('--real', nargs='+', required=True); s.add_argument('--new', nargs='+', required=True)

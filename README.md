@@ -98,6 +98,9 @@ colours; scraped ones often aren't on the exact 12-bit grid (other 4-bit-to-8-bi
 new art and only a warning for old. Recipe: a generated reference -> `pc98 pc98ify` (16 colours, Bayer 4x4) -> load
 the result as a Grid and repaint in code: lines along forms, flat areas where the dither is noise, patterns per
 material, highlights by hand -> `pc98 preview --page explore/<page>.html --override img/explore/places/<x>.png=...`.
+For a full scene, the paint-over in `assets/panda-room/` is the worked example: trace an image-model underlay off
+gridded zooms (`pc98 zoom`), lay flat planes, light as hand-placed hard-stepped fields, cel shadows from offset masks.
+Its `NOTES.md` lists the techniques that worked and the ones that didn't.
 
 ## Making an asset, end to end
 
@@ -141,6 +144,7 @@ material, highlights by hand -> `pc98 preview --page explore/<page>.html --overr
 | `pc98 preview DIR [ICONS...]` | the page in headless Chrome at 1x and 2x, `--swap`, `--override`, `--page`, `--pad` |
 | `pc98 pc98ify IMG OUT` | scene first pass: `--size WxH`, 16 colours on the 12-bit grid (`--keep`, `--palette`), Bayer dither |
 | `pc98 compose BASE OUT --put PNG@X,Y` | paste sprites into a site image at exact pixels |
+| `pc98 zoom IMG OUT X0 Y0 X1 Y1` | gridded zoom in native coordinates for tracing; `-z`, `--beside` a second image |
 | `pc98 blind DIR --real ... --new ...` | blind-test images and key |
 
 ## Layout

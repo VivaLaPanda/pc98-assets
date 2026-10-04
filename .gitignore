@@ -15,3 +15,4 @@ assets/*/refs/trace/
 assets/*/out/scratch/
 # retina screenshots are big; the 1x ones and the contact sheet are enough in git
 assets/*/out/review/*/context@2x.png
+assets/*/out/*/review/*/context@2x.png

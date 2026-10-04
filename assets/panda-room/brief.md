@@ -75,3 +75,19 @@ and `out/layouts_contact_sheet.png` (reference | PC-98 pass with the object map 
   as abstract lit shapes.
 - Final-art plan: repaint the chosen layout in code over the PC-98 pass (lines, flat shapes, per-material patterns),
   each object on its own mask so it can brighten on hover, city windows on palette-cycled indices to twinkle.
+
+## Final art (2026-10-03, layout B)
+
+`out/final/room.png`, 448x320, 16 inks on the 12-bit grid, lint-clean (flat 0.52, checker/dot 0.072, against the real
+`city_overlook`'s 0.59 / 0.113). Painted by hand in code over a traced underlay (`paint.py`); `export.py` writes the
+masks, hover overlays, `hotspots.json` (keys `window, pc, newspaper, phone, bookshelf, butterfly, tv, plush`), the
+twinkle frames and the review sheets. Changes from the B reference:
+- the monitor has a crisp silhouette against the glass;
+- the shelf is dim apart from one lamp pool;
+- the newspaper lies bright on a readable desk;
+- the phone throws a cold pool on a darkened bed;
+- the butterfly glows on the sill;
+- the neon is abstract.
+
+`NOTES.md` records the techniques, what worked and what didn't.
+

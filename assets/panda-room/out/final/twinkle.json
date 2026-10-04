@@ -1,0 +1,11 @@
+{
+ "x": 28,
+ "y": 30,
+ "w": 180,
+ "h": 154,
+ "frames": 8,
+ "fps": 2,
+ "how": "overlay twinkle.png on the scene at (x, y) in native pixels and step through its frames (CSS: background-position steps(frames)); only the changing lights are opaque. Equivalent to PC-98 palette cycling, without needing an indexed canvas.",
+ "twinkling_windows": 301,
+ "blinking_beacons": 4
+}
