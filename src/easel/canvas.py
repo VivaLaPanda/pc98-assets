@@ -399,6 +399,35 @@ class Canvas:
         m = mask & (new != self.idx) & self._writable()
         self.idx[m] = new[m]
 
+    def relight_halves(self, mask, level, ramp):
+        """Light over a surface that is already dithered (a wall of two inks in a checker, say), in half steps, the
+        way period halos are built: dither -> solid -> next dither -> solid. Each half step lifts the darker pixel of
+        a dithered ramp pair (dark becomes its partner: solid), the next lifts the lighter (a checker one step up),
+        and so on. A flat area (or a sparse texture's ground) takes a 1/2 checker on the odd half steps. Unlike
+        `relight` with partial tiles, an existing dither never interferes with the tile into dust."""
+        n = np.floor(np.clip(np.asarray(level, float), 0, 8) * 2).astype(int) * mask
+        succ = np.arange(256, dtype=np.int64)
+        for a, b in ramp.items():
+            succ[a] = b
+        idx = self.idx.astype(np.int64)
+        pad = np.pad(idx, 1, mode='edge')
+        nbs = [pad[:-2, 1:-1], pad[2:, 1:-1], pad[1:-1, :-2], pad[1:-1, 2:]]
+        dark = np.zeros_like(mask, bool)                       # a neighbour is this ink's next step: the dither's dark
+        partners = np.zeros(mask.shape, int)                   # how many neighbours are this ink's darker partner
+        for nb in nbs:
+            dark |= (succ[idx] == nb) & (succ[idx] != idx)
+            partners += (succ[nb] == idx) & (succ[nb] != nb)
+        dense_light = ~dark & (partners >= 2)                  # the light half of a real checker: it waits a half step
+        ys, xs = np.mgrid[0:self.h, 0:self.w]
+        checker = ((xs + self.ox + ys + self.oy) % 2) == 0
+        k = np.where(dark, (n + 1) // 2, n // 2) + (~dark & ~dense_light & (n % 2 == 1) & checker)
+        new = idx.copy()
+        for step in range(1, int(k.max()) + 1 if k.size else 1):
+            sel = k >= step
+            new[sel] = succ[new[sel]]
+        m = mask & (new != idx) & self._writable()
+        self.idx[m] = new[m].astype(self.idx.dtype)
+
     def dist_from(self, mask, max_d=64):
         """Rings around a selection: 0 on it, 1 on the pixels touching it, 2 on the next ring... (8-way), max_d
         beyond. For glows and halos that hug a shape's silhouette rather than a circle."""
@@ -465,11 +494,11 @@ class Canvas:
     def m_where(self, *indices):
         return np.isin(self.idx, list(indices))
 
-    def m_region(self, x, y, conn=4, within=None):
-        """The connected area of the seed pixel's colour (what a flood fill would cover)."""
+    def m_region(self, x, y, conn=4, within=None, inks=None):
+        """The connected area of the seed pixel's colour (what a flood fill would cover); with `inks`, the connected
+        area of any of those inks (a dithered field is one region)."""
         x, y = int(x), int(y)
-        target = self.idx[y, x]
-        same = self.idx == target
+        same = np.isin(self.idx, list(inks)) if inks is not None else self.idx == self.idx[y, x]
         if within is not None:
             same &= within
         m = np.zeros_like(same)

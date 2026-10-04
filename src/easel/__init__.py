@@ -29,7 +29,7 @@ import traceback
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageOps, ImageDraw
 
 from pc98.config import ROOT, SITE, font
 from . import base as BASE
@@ -235,6 +235,11 @@ def look(name, cv, steps, cfg, d):
     for lab, im in refs[:3]:
         small.append(_label(_zoom(im, 2), f'{lab} 2x', color=DIM))
     rows.append(_row(small))
+    # stepping back (stillwet's look modes): value only, and squinting (blurred), at 1x. Which region leads?
+    gray = ImageOps.grayscale(pic).convert('RGB')
+    squint = pic.resize((max(1, cv.w // 4), max(1, cv.h // 4)), Image.BILINEAR).resize((cv.w, cv.h), Image.BILINEAR)
+    rows.append(_row([_label(gray, 'value 1x', color=DIM), _label(squint, 'squint 1x', color=DIM),
+                      _label(ImageOps.grayscale(squint).convert('RGB'), 'value + squint 1x', color=DIM)]))
     # details at the same zoom as the references
     det = []
     for rn, box in (lk.get('regions') or {}).items():
@@ -372,7 +377,8 @@ def cmd_preview(a):
         blank = tmp / f'{a.piece}_blank_{Path(p).name}'
         Image.new('RGBA', im.size, (0, 0, 0, 0)).save(blank)
         overrides[p] = str(blank)
-    paths = PV.preview(None, d / 'out' / 'preview', page=site.get('page', 'room.html'), overrides=overrides)
+    paths = PV.preview(None, d / 'out' / 'preview', page=site.get('page', 'room.html'), overrides=overrides,
+                       hide=site.get('hide'))
     print('\n'.join(paths))
 
 

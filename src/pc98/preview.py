@@ -105,9 +105,10 @@ def _replace_block(html, start_pat):
     raise SystemExit('unbalanced sidebar markup')
 
 
-def page_html(icons=None, page='contact.html', dialog=None, swaps=None, pad=None):
+def page_html(icons=None, page='contact.html', dialog=None, swaps=None, pad=None, hide=None):
     """icons: an explicit layout (two per row), or None to keep the page's own sidebar. swaps: {site icon file name or
-    stem: replacement token}, applied to whatever sidebar is used (e.g. {'blog_recolor.png': 'out/x_recolor.png'})."""
+    stem: replacement token}, applied to whatever sidebar is used (e.g. {'blog_recolor.png': 'out/x_recolor.png'}).
+    hide: CSS selectors to hide (page overlays drawn for older art, say)."""
     html = site_file(page).read_text()
     s, e = _replace_block(html, r'<div class="subwindow" id="left-sidebar">')
     side = html[s:e]
@@ -134,6 +135,8 @@ def page_html(icons=None, page='contact.html', dialog=None, swaps=None, pad=None
            '#boot-screen{display:none!important} .main-window{display:block!important}']
     if pad is not None:
         css.append(f'.nav-row>.navbutton{{padding:{pad}px 25px!important}}')
+    for sel in hide or ():
+        css.append(f'{sel}{{display:none!important}}')
     html = html.replace('</head>', f'<style>{" ".join(css)}</style>\n</head>', 1)
     if dialog:
         html = re.sub(r'(<div class="text-container">).*?(</div>)',
@@ -256,7 +259,7 @@ def compare(slot, candidates, out, page='contact.html', scale=2, zoom=1, labels=
     return str(out)
 
 
-def preview(icons, out_dir, page='contact.html', dialog=None, zoom=3, swaps=None, pad=None, overrides=None):
+def preview(icons, out_dir, page='contact.html', dialog=None, zoom=3, swaps=None, pad=None, overrides=None, hide=None):
     """Writes context.png (the frame at 1x, as most screens show it), context@2x.png (as a retina screen shows it)
     and sidebar.png (the sidebar from both, enlarged with hard pixels so you can see exactly what Chrome drew).
     Returns the paths."""
@@ -269,7 +272,7 @@ def preview(icons, out_dir, page='contact.html', dialog=None, zoom=3, swaps=None
     tmp.mkdir(exist_ok=True)
     fd, name = tempfile.mkstemp(suffix='.html', dir=tmp)
     os.close(fd)
-    Path(name).write_text(page_html(icons, page, dialog, swaps, pad))
+    Path(name).write_text(page_html(icons, page, dialog, swaps, pad, hide))
     url = f'http://127.0.0.1:{port}/__ws/.preview/{Path(name).name}'
     try:
         with Chrome() as chrome:
