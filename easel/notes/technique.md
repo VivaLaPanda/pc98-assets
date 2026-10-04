@@ -82,3 +82,11 @@ Traced shapes from an image model, soft generic "lo-fi room" composition, flat f
   seam carries the same bands and the frame's edge doesn't get a new bright puddle.
 - **Then look for the seam at 1x, 2x and 3x** beside the picture's own top and bottom edges. If you can find it,
   so can everyone.
+- **Moonlight (any light at infinity) is traced from its point in the sky.** Shadows of verticals on the floor run
+  from the point on the horizon under the moon; trace each floor pixel's ray toward it through the opening and past
+  everything in the way (mullion, balusters, a cylinder fitted to a bolster). A low moon lights the whole floor: fade
+  it toward the frame's edge by choice, or the bright bars pull the eye off the focal point.
+- **A wide camera decides where new furniture can go.** At D=200 on a 500px frame (103 degrees) a 13" set near the
+  frame's edge is wider than the PC at the back; put new objects at the depth of the things they rank below.
+- **Pick the view that names the object.** A jacket slung over a chair, seen from behind, read as a locker; on its
+  hanger, front on, lapels and a tie, it read at 1x.

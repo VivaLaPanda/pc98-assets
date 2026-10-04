@@ -28,11 +28,14 @@ OUT = Path(__file__).parent / 'out' / 'site'
 SCALE = 4
 
 # front to back: where two objects overlap, the earlier one owns the pixels
-ORDER = ['butterfly', 'phone', 'plush', 'tv', 'pc', 'newspaper', 'bookshelf', 'window']
+ORDER = ['controller', 'tv', 'butterfly', 'linkedin', 'letter', 'phone', 'lesswrong', 'plush', 'pc', 'newspaper',
+         'bookshelf', 'poster', 'window']
 INFO = {'window': (1, 'Twitter'), 'phone': (2, 'Signal / Discord'), 'pc': (3, 'GitHub'), 'newspaper': (4, 'Substack'),
         'bookshelf': (5, 'Reading list'), 'butterfly': (6, 'Bluesky'), 'tv': (7, 'Letterboxd'),
-        'plush': (8, 'none (a knick-knack)')}
-PAD_HIT = {'phone': 5, 'butterfly': 6}            # tiny objects get a padded hit rectangle
+        'letter': (8, 'Email'), 'controller': (9, 'Steam'), 'plush': (10, 'none (a knick-knack)'),
+        'poster': (11, 'none (a knick-knack)'), 'lesswrong': (12, 'LessWrong'), 'linkedin': (13, 'LinkedIn')}
+PAD_HIT = {'phone': 5, 'butterfly': 3, 'letter': 3}   # small objects get a padded hit rectangle
+HULL_HIT = {'controller': 2}                          # parts spread apart (console, cord, pad): their padded hull
 
 
 def grow(m, n=1):
@@ -128,6 +131,21 @@ def x4(im):
     return im.resize((im.width * SCALE, im.height * SCALE), Image.NEAREST)
 
 
+def hull(pts):
+    """Convex hull (monotone chain) of integer points, clockwise in screen coordinates."""
+    pts = sorted(set(map(tuple, pts)))
+    def half(seq):
+        out = []
+        for p in seq:
+            while len(out) >= 2 and ((out[-1][0] - out[-2][0]) * (p[1] - out[-2][1])
+                                     - (out[-1][1] - out[-2][1]) * (p[0] - out[-2][0])) <= 0:
+                out.pop()
+            out.append(p)
+        return out
+    lo, hi = half(pts), half(pts[::-1])
+    return [list(p) for p in lo[:-1] + hi[:-1]]
+
+
 def twinkle(cv, idx, front, frames=8):
     """A sixth of the city's small lights wink (a step dimmer for a frame or two, each on its own phase); isolated red
     beacons blink. Only the pixels that change are opaque."""
@@ -137,8 +155,9 @@ def twinkle(cv, idx, front, frames=8):
            K['curtain']: K['slate']}
     T = ns['TOP']
     glass = np.zeros(idx.shape, bool)
-    glass[T + 30:T + 202, 189:284] = True                                  # the door's panes, sky and low city
-    glass &= ~grow(front, 1)
+    glass[T + 30:T + 173, 191:284] = True          # the door's panes: sky and city, down to the balusters' feet (the
+    glass &= ~grow(front, 1)                       # moonlit deck below, the backlit curtain edges and the moon stay
+    glass &= ~grow(ns['MOON_DISK'], 6)             # still: they carry the same inks as the lights)
     lights = []
     for c in components(glass & np.isin(idx, list(DIM))):
         ys, xs = np.nonzero(c)
@@ -229,8 +248,11 @@ def main():
             p = PAD_HIT[name]
             x0, y0, x1, y1 = rec['bbox']
             rec['hit'] = [[x0 - p, y0 - p], [x1 + 1 + p, y0 - p], [x1 + 1 + p, y1 + 1 + p], [x0 - p, y1 + 1 + p]]
+        if name in HULL_HIT:
+            gy, gx = np.nonzero(grow(m, HULL_HIT[name]))
+            rec['hit'] = hull(np.stack([np.r_[gx, gx + 1, gx, gx + 1], np.r_[gy, gy, gy + 1, gy + 1]], 1).tolist())
         hs[name] = rec
-    spec = twinkle(cv, idx, masks['butterfly'])
+    spec = twinkle(cv, idx, masks['butterfly'] | masks['linkedin'])
     meta = {'scene': 'room.png', 'native_size': [W, H], 'shown_size': [740, 528], 'scale': SCALE,
             'z_order_front_to_back': ORDER, 'objects': hs, 'twinkle': spec,
             'note': 'native pixel-corner coordinates; lit sprites are cropped @4x to their lit rect'}
@@ -252,7 +274,7 @@ def main():
         ImageDraw.Draw(t).text((2, 2), f"{INFO[name][0]} {name}: rest | lit", fill=(255, 200, 120))
         tiles.append(t)
     cw, rh = max(t.width for t in tiles), max(t.height for t in tiles)
-    sheet = Image.new('RGB', (cw * 2 + 10, rh * 4 + 10), (12, 12, 12))
+    sheet = Image.new('RGB', (cw * 2 + 10, rh * ((len(tiles) + 1) // 2) + 10), (12, 12, 12))
     for i, t in enumerate(tiles):
         sheet.paste(t, (5 + (i % 2) * cw, 5 + (i // 2) * rh))
     sheet.save(OUT / 'review' / 'lit_states.png')
