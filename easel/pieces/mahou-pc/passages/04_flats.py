@@ -1,21 +1,19 @@
-# 04 flats, by plane. This room is lit from the window on the left: left-facing planes are light, fronts a step
-# darker (see the desk's own pedestal). Machines: beige plastic = paper (#77b) / wall (#558) / wall-shade (#446).
+# 04 flats, by plane. The room is lit (at night, faintly) from the window on the left, so left-facing planes are a
+# step lighter; the machine is 90s beige plastic, which this night palette carries as paper (#77a) / wall (#557) /
+# wall shade (#456). The glass is the brightest flat in the room's right half: it is the light.
 def flat(mask, c):
     with cv.only_over(G):
         cv.fill(mask, c)
 
-# keyboard and newspaper first (nearest), then the CRT, then the case
-flat(cv.m_poly(KB), WALL)
-flat(SIL['kb'], WALL_SHADE)
-flat(cv.m_poly([NP[0], FOLD[0], FOLD[1], NP[3]]), WALL)                    # the left half of the fold, turned from the light
 flat(SIL['paper'], PAPER)
-flat(cv.m_rect(GL['l'], GL['t'], GL['r'], GL['b']), SCREEN)
-flat(cv.m_rect(RC['l'], RC['t'], RC['r'], RC['b']), DARK)
-flat(cv.m_poly(top), PAPER)
-flat(cv.m_poly(side), WALL)
-flat(cv.m_poly(bezel), WALL)
-flat(cv.m_poly(case_top), PAPER)
-flat(cv.m_poly(case_side), WALL)
-flat(cv.m_poly(case_front), WALL_SHADE)
-left = int((cv.idx == G).sum())
+flat(SIL['kb_top'], WALL)
+flat(SIL['kb_lip'], WALL_SHADE)
+flat(cv.m_poly(GLASS), GLOW)
+flat(cv.m_poly(RECESS), DARK)
+flat(SIL['top'] & ~SIL['bezel'], PAPER)
+flat(SIL['side'] & ~SIL['bezel'], WALL_SHADE)
+flat(SIL['bezel'], WALL)
+flat(SIL['foot'], SLATE)
+objects = SIL['crt'] | SIL['kb'] | SIL['paper']
+left = int((objects & (cv.idx == G)).sum())
 assert left == 0, f'{left} ground pixels unfilled'

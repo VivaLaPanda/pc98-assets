@@ -56,3 +56,13 @@ Traced shapes from an image model, soft generic "lo-fi room" composition, flat f
   rims on edges that face it; nothing behind things.
 - **Match the base's density.** A resampled base has softer lines and almost no exact checkers; paint at its density
   or the new object looks sharper than the room around it.
+- **Find the camera first** (focal distance from a round object or a box's depth, scale from a door) and build new
+  objects in it. A wide-angle room shows a turned object's sides differently from what the eye expects.
+- **Re-timing removes the old timing's light**: sun patches, sunlit views behind glass, sun highlights. Leaving
+  one is a daylight tell at night.
+- **Light is traced, strength is chosen.** The shape of a glow (where it stops, what casts shadows) comes from the
+  geometry; how strong each surface reads is set by hand. Floors and far surfaces: at most a 3/4 tile of the glow
+  ink; solid glow ink only on the source and what touches it.
+- **Halos over dithered or printed surfaces go in half steps** (solid, checker, solid), never quarter tiles.
+- **Keep the hierarchy**: check value and squint at 1x after every light or palette change. Lights inside an
+  inserted picture are given bright inks on purpose so the intended focal point keeps leading.

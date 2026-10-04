@@ -1,46 +1,76 @@
-# 05 the CRT: bevels, the glass and what's on it, controls. The glass is the room's light source, so it is a hard
-# flat of the brightest inks; its corners dim like a real tube; the glare is a stepped curve in the top left.
-g = GL
-# bezel bevel: a light line along the top and left (the window side), shade along the bottom and right
-cv.line(b['l'] + 1, b['t'] + 1, b['r'] - 1, b['t'] + 1, PAPER)
-cv.line(b['l'] + 1, b['t'] + 1, b['l'] + 1, b['b'] - 1, PAPER)
-cv.line(b['l'] + 2, b['b'] - 1, b['r'] - 1, b['b'] - 1, WALL_SHADE)
-cv.line(b['r'] - 1, b['t'] + 2, b['r'] - 1, b['b'] - 1, WALL_SHADE)
-# the recess: shadow under its top and left lip, its bottom and right chamfers catch the screen
-cv.line(RC['l'] + 1, RC['b'] - 1, RC['r'] - 1, RC['b'] - 1, PAPER)
-cv.line(RC['r'] - 1, RC['t'] + 2, RC['r'] - 1, RC['b'] - 1, PAPER)
-cv.line(RC['l'] + 1, RC['t'] + 1, RC['r'] - 1, RC['t'] + 1, BLACK)
-cv.line(RC['l'] + 1, RC['t'] + 1, RC['l'] + 1, RC['b'] - 2, BLACK)
-# the glass: phosphor dims toward the edge (a ring of GLOW, 1/2 tile inside it), corners rounded off
-glass = cv.m_rect(g['l'], g['t'], g['r'], g['b'])
+# 05 the CRT: the recess, the glass and what's on it, the chin. The glass is the room's light, so it is hard flats of
+# the brightest inks; its edge dims like a real tube; the glare is a stepped curve. Everything on the face follows the
+# face's own perspective through quad(), so rows of text slant with the bezel.
+def quad(q, s, t):
+    """Bilinear point at (s across, t down) of a quad TL TR BR BL."""
+    (ax, ay), (bx, by), (cx, cy), (dx, dy) = q
+    x = (1 - t) * ((1 - s) * ax + s * bx) + t * ((1 - s) * dx + s * cx)
+    y = (1 - t) * ((1 - s) * ay + s * by) + t * ((1 - s) * dy + s * cy)
+    return (round(x), round(y))
+
+def qline(q, s0, s1, t, c):
+    cv.line(*quad(q, s0, t), *quad(q, s1, t), c)
+
+def qrect(q, s0, t0, s1, t1, c):
+    cv.poly([quad(q, s0, t0), quad(q, s1, t0), quad(q, s1, t1), quad(q, s0, t1)], c)
+
+glass = cv.m_poly(GLASS)
+# the recess: its top and left lips throw shadow inward (dark), its bottom and right chamfers catch the glass
+rc = cv.m_poly(RECESS) & ~glass
+with cv.only_over(DARK, BLACK):
+    cv.fill(rc & cv.m_poly([RECESS[3], RECESS[2], GLASS[2], GLASS[3]]), WALL_SHADE)       # bottom chamfer
+    cv.fill(rc & cv.m_poly([RECESS[1], RECESS[2], GLASS[2], GLASS[1]]), WALL_SHADE)       # right chamfer
+# the bezel's bevel: a light line just outside the recess on the top and left (it faces the room)
+cv.polyline([quad(FACE, 0.03, 0.93), quad(FACE, 0.03, 0.03), quad(FACE, 0.97, 0.03)], PAPER)
+
+# the glass: the desktop in the cool glow ink, the phosphor's edge a slate ring, corners rounded into the recess
 ring = cv.m_edge(glass, 'all', inside=True)
-cv.fill(ring, GLOW)
-cv.fill(cv.m_edge(glass & ~ring, 'all', inside=True), T('1/4', None, GLOW))
-for x, y in ((g['l'], g['t']), (g['r'], g['t']), (g['l'], g['b']), (g['r'], g['b'])):
-    cv.dot(x, y, DARK)
-# on screen: a window with a title bar and a few lines of text (abstract clusters: too small to letter)
-cv.rect(g['l'] + 2, g['t'] + 2, g['r'] - 2, g['t'] + 3, FLOOR)                 # title bar, the room's blue
-cv.dots([(g['l'] + 4 + k * 2, g['t'] + 2) for k in range(4)], WHITE)           # its title
-cv.rect(g['r'] - 4, g['t'] + 2, g['r'] - 3, g['t'] + 3, SCREEN)                # close box
-for k, (x0, x1) in enumerate([(4, 18), (4, 21), (4, 14), (4, 19), (4, 11)]):
-    y = g['t'] + 6 + k * 2
-    cv.line(g['l'] + x0, y, g['l'] + x1, y, CURTAIN)                          # text rows
-cv.rect(g['r'] - 6, g['t'] + 6, g['r'] - 3, g['t'] + 9, FLOOR, fill=False)     # a picture
-cv.dot(g['r'] - 5, g['t'] + 8, CURTAIN)
-# glare: two stepped arcs of white in the top-left corner
-cv.dots([(g['l'] + 2, g['t'] + 6), (g['l'] + 2, g['t'] + 5), (g['l'] + 3, g['t'] + 4), (g['l'] + 4, g['t'] + 3)], WHITE)
-cv.dots([(g['l'] + 2, g['t'] + 9), (g['l'] + 3, g['t'] + 8)], WHITE)
-cv.dot(g['r'] - 2, g['b'] - 2, WHITE)
-# chin: maker's badge left, three knobs, the power switch and its LED right
-cv.line(b['l'] + 4, b['b'] - 4, b['l'] + 8, b['b'] - 4, PAPER); cv.dot(b['l'] + 4, b['b'] - 3, DARK)
-for x in (b['r'] - 18, b['r'] - 15, b['r'] - 12):
-    cv.dot(x, b['b'] - 4, DARK); cv.dot(x, b['b'] - 5, PAPER)
-cv.rect(b['r'] - 8, b['b'] - 5, b['r'] - 5, b['b'] - 3, BLACK, fill=False)
-cv.dot(b['r'] - 7, b['b'] - 4, WALL_SHADE); cv.dot(b['r'] - 6, b['b'] - 4, WALL_SHADE)
-cv.dot(b['r'] - 3, b['b'] - 4, SCREEN)                                        # power LED
-# housing: a light edge where the side turns the corner to the bezel, vent slots toward the back, a seam
-cv.line(b['l'] - 1, b['t'] + 3, b['l'] - 1, b['b'] - 5, PAPER)
-for k in range(4):
-    p0 = (TOP_BL[0] + 2, TOP_BL[1] + 4 + k * 2)
-    cv.line(p0[0], p0[1] + 1, p0[0] + 4, p0[1] + 2, WALL_SHADE)
-cv.polyline([toward((b['l'], b['t'] + 4), 0.035), toward((b['l'], b['b'] - 5), 0.035)], WALL_SHADE)
+cv.fill(ring, SLATE)
+for p in GLASS:
+    cv.dot(*p, DARK)
+G2 = [quad(GLASS, 0.03, 0.04), quad(GLASS, 0.97, 0.04), quad(GLASS, 0.97, 0.96), quad(GLASS, 0.03, 0.96)]
+
+# on screen: one editor window full of code (the PC is the GitHub link) on a plain desktop, two icons left of it
+W = [quad(G2, 0.14, 0.07), quad(G2, 0.95, 0.07), quad(G2, 0.95, 0.93), quad(G2, 0.14, 0.93)]
+cv.poly(W, SCREEN)                                               # the client, the palest ink but white
+cv.polyline(W + [W[0]], SLATE)                                   # its frame
+qrect(W, 0.0, 0.0, 1.0, 0.09, FLOOR)                             # title bar in the room's blue
+for s in (0.08, 0.12, 0.16, 0.20, 0.24):
+    cv.dot(*quad(W, s, 0.045), WHITE)                            # its title
+cv.dot(*quad(W, 0.94, 0.045), SCREEN)                            # close box
+qline(W, 0.03, 0.03, 0.12, GLOW); qline(W, 0.03, 0.03, 0.98, GLOW)
+cv.poly([quad(W, 0.0, 0.10), quad(W, 0.06, 0.10), quad(W, 0.06, 1.0), quad(W, 0.0, 1.0)], GLOW)   # line-number gutter
+# code: indented rows in three syntax inks (keyword blue, plain slate, a red string), a cursor
+ROWS = [(0.10, 0.55, FLOOR), (0.16, 0.78, SLATE), (0.22, 0.62, SLATE), (0.22, 0.44, FLOOR), (0.28, 0.70, SLATE),
+        (0.16, 0.30, FLOOR), (0.10, 0.18, FLOOR), (0.10, 0.66, SLATE), (0.16, 0.52, SLATE)]
+for k, (s0, s1, c) in enumerate(ROWS):
+    t = 0.17 + k * 0.095
+    qline(W, s0, s1, t, c)
+    if c == SLATE and s1 - s0 > 0.35:
+        qline(W, s0 + 0.14, s0 + 0.24, t, RED)                   # a string inside the line
+cv.dot(*quad(W, 0.33, 0.17 + 5 * 0.095), DARK)                   # the cursor
+for t in (0.20, 0.42):                                           # desktop icons
+    qrect(G2, 0.03, t, 0.08, t + 0.08, FLOOR)
+    cv.dot(*quad(G2, 0.055, t + 0.14), SCREEN)
+# glare: a stepped arc of white where the curved glass catches the room, top left; a glint bottom right
+cv.dots([quad(GLASS, 0.06, 0.30), quad(GLASS, 0.06, 0.24), quad(GLASS, 0.08, 0.17), quad(GLASS, 0.11, 0.12),
+         quad(GLASS, 0.15, 0.08), quad(GLASS, 0.20, 0.07)], WHITE)
+cv.dots([quad(GLASS, 0.06, 0.42), quad(GLASS, 0.07, 0.38)], WHITE)
+cv.dot(*quad(GLASS, 0.93, 0.88), WHITE)
+
+# chin: maker's badge left, the power switch and its lit LED right, a row of knobs between
+chin = [quad(FACE, 0, 0.83), quad(FACE, 1, 0.83), quad(FACE, 1, 1), quad(FACE, 0, 1)]
+qline(chin, 0.08, 0.20, 0.45, PAPER)                             # badge
+qline(chin, 0.08, 0.20, 0.65, WALL_SHADE)
+for s in (0.58, 0.63, 0.68):
+    cv.dot(*quad(chin, s, 0.45), DARK)                           # knobs, lit on top
+    cv.dot(*quad(chin, s, 0.30), PAPER)
+qline(chin, 0.79, 0.86, 0.45, DARK)                              # power switch
+cv.dot(*quad(chin, 0.92, 0.45), SCREEN)                          # power LED
+# housing: the corner where the side turns to the bezel catches the room's light; vent slots toward the back
+SL = [SIDE[0], SIDE[1]]
+cv.line(SL[0][0] + 1, SL[0][1] + 3, SL[1][0] + 1, SL[1][1] - 4, PAPER)
+for k in range(5):
+    p0 = mon(-HW + 1.5, H - 6 - k * 2.5, 12)
+    p1 = mon(-HW + 2.5, H - 7 - k * 2.5, 22)
+    cv.line(*p0, *p1, DARK)

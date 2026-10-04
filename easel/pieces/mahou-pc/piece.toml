@@ -33,4 +33,8 @@ label = "computer_crop CRT"
 page = "room.html"
 path = "img/room/room@4x.png"
 scale = 4
-blank = ["img/room/twinkle@4x.png"]
+# the live page's overlays drawn for the old art (twinkle strip, hover/glint sprites) are hidden in previews
+blank = ["img/room/twinkle@4x.png", "img/room/lit/window@4x.png", "img/room/lit/phone@4x.png",
+         "img/room/lit/pc@4x.png", "img/room/lit/newspaper@4x.png", "img/room/lit/bookshelf@4x.png",
+         "img/room/lit/butterfly@4x.png", "img/room/lit/tv@4x.png", "img/room/lit/plush@4x.png"]
+hide = ["#room-hotspots"]             # and its night shade, masked by the old art's hotspot polygons

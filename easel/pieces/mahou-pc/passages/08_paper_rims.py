@@ -1,36 +1,56 @@
-# 08 after the light: the newspaper, then rim lights on every edge that faces the glass.
-# the newspaper is the brightest thing on the desk after the glass: hard flats, lettered after the lighting so its
-# print stays dark and crisp. The half facing the screen is GLOW, the turned half PAPER with a 1/4 GLOW toward it.
-lit_half = SIL['paper'] & ~cv.m_poly([NP[0], FOLD[0], FOLD[1], NP[3]]) & lightable
-turned = SIL['paper'] & cv.m_poly([NP[0], FOLD[0], FOLD[1], NP[3]]) & lightable
-cv.fill(lit_half, GLOW)
-cv.fill(turned, PAPER)
-cv.fill(turned & cv.m_poly([(357, 138), FOLD[0], FOLD[1], (376, 153)]), T('1/4', None, GLOW))
-# a broadsheet folded in half. Lit half (right): masthead with the orange Substack mark, a headline, a
-# photo, columns. Turned half (left): columns only. Rows follow the paper's slant (its top edge drops 1 per 12).
-def prow(x0, x1, y, c, step=None):
-    """A row of print from x0 to x1 that follows the sheet's slant (top edge rises to the right)."""
-    for x in range(x0, x1 + 1):
-        if step and (x - x0) % step == step - 1:
-            continue
-        cv.dot(x, y - (x - 350) // 12, c)
-cv.rect(365, 140, 367, 141, BEDSPREAD)                                      # the mark: an orange block...
-cv.dot(366, 140, PAPER)                                                     # ...with its pale bar
-prow(369, 377, 140, BLACK)                                                  # masthead name
-prow(366, 380, 142, DARK, step=7)                                           # headline
-cv.rect(375, 144, 380, 147, SLATE)                                          # photo
-cv.dots([(376, 145), (378, 146)], WALL)
-for y in (145, 147, 149):
-    prow(366 + (y - 145), 372 + (y - 145) // 2, y, WALL_SHADE)
-prow(369, 383, 151, WALL_SHADE, step=8)
-for y in (142, 144, 146, 148, 150):
-    x0 = 352 + (y - 139) * 15 // 14
-    prow(x0, x0 + 6, y, WALL_SHADE, step=4)
+# 08 after the light: the newspaper, then rims and contact shadows.
+# The newspaper (Substack) is the brightest thing on the desk after the glass: its traced light as hard bands, the
+# half turned away from the screen (the left of the fold, tented up) a step lower, and its print laid after the light
+# so it stays dark and crisp. Print is placed in the paper's own frame (x across, z down the page, cm), so every row
+# follows the sheet's perspective and its skew on the desk.
+PAPER_RAMP = {PAPER: GLOW, GLOW: SCREEN, SCREEN: SCREEN}
+turned = SIL['paper'] & cv.m_poly([NP[0], FOLD[0], FOLD[1], NP[3]])
+cv.relight(SIL['paper'] & lightable, np.where(turned, np.clip(LV_PAPER - 0.5, 1.0, 1.25), np.maximum(LV_PAPER, 1.25)),
+           PAPER_RAMP, tile_on={PAPER, GLOW})
+# a light sheet's edge is drawn in a dark of its own colour, not the line black (as the room draws its calendar's
+# pages): the outline where it lies on the desk goes to wall shade
+ring = cv.m_edge(SIL['paper'], 'all', inside=False) & cv.m_where(BLACK) & ~SIL['crt'] & ~SIL['kb']
+cv.fill(ring, WALL_SHADE)
+cv.fill(cv.m_line(*FOLD[0], *FOLD[1]) & SIL['paper'] & cv.m_where(BLACK), PAPER)
 
-# rims: 1px of the light colour along edges turned toward the screen
-cv.line(KB_F[0] + 1, KB_F[2] + 1, KB_F[1] - 1, KB_F[2] + 1, GLOW)                # keyboard lip's top edge
-cv.line(CASE['l'] + 1, CASE['t'] - 1, CASE['r'] - 1, CASE['t'] - 1, GLOW)       # case top's front edge
-cv.line(BZ['l'] + 2, BZ['b'] + 1, BZ['r'] - 2, BZ['b'] + 1, PAPER)              # where the bezel's foot meets the case
+def pp(x, z):
+    """A point of the newspaper's page on the canvas."""
+    return on_desk(NP_C, NP_DEG, x, z)
+
+INKIER = {SCREEN: GLOW, GLOW: PAPER, PAPER: WALL}                    # small print: one step under its paper
+
+def prow(x0, x1, z, c=None, gaps=()):
+    """A row of print across the page at z, broken at the column gaps (each a pair of x). c=None prints small text:
+    each pixel one step darker than the paper under it, so from this far the columns read as grey, not black."""
+    cuts = [x0] + [g for gap in sorted(gaps) for g in gap] + [x1]
+    m = np.zeros_like(SIL['paper'])
+    for a, b in zip(cuts[::2], cuts[1::2]):
+        m |= cv.m_line(*pp(a, z), *pp(b, z))
+    m &= SIL['paper'] & cv.m_where(PAPER, GLOW, SCREEN)
+    if c is None:
+        for k, v in INKIER.items():
+            cv.idx[m & (cv.idx == k)] = v
+    else:
+        cv.fill(m, c)
+
+with cv.only_over(PAPER, GLOW, SCREEN):
+    cv.poly([pp(-8.5, 15.5), pp(-5, 15.5), pp(-5, 12), pp(-8.5, 12)], BEDSPREAD)    # the orange mark...
+prow(-3.5, 7.5, 13.8, DARK)                                                        # masthead
+prow(-8, 7, 9.0, WALL_SHADE, gaps=[(-0.6, 0.6)])                                   # headline, across the fold
+for z in (3.5, -5.5):                                                              # columns of small print
+    prow(-8, -1.2, z, gaps=[(-4.8, -4.2)])
+    prow(1.2, 8, z)
+with cv.only_over(GLOW, SCREEN):
+    cv.poly([pp(3, 1.5), pp(7.5, 1.5), pp(7.5, -6), pp(3, -6)], PAPER)             # a photo on the right half
+    cv.dot(*pp(5, -2), WALL)
+
+# rims: 1px of the light ink along edges turned toward the glass
+with cv.only_over(WALL, WALL_SHADE, PAPER, GLOW):
+    cv.line(KB[3][0] + 1, KB[3][1] + 1, KB[2][0] - 1, KB[2][1] + 1, GLOW)        # the keyboard lip's top edge
+with cv.only_over(DESK_SHADE, DESK, PAPER, WOOD):
+    cv.line(379, DESK_FRONT_Y, KB[3][0] - 1, DESK_FRONT_Y, PAPER)                 # the desk's front edge, left of the keys
+# contact shadows: where things meet the desk the light cannot reach
 with cv.only_over(DESK_SHADE, DESK, PAPER, GLOW):
-    cv.line(379, DESK_FRONT_Y - 1, 431, DESK_FRONT_Y - 1, GLOW)                 # the desk's front edge, near the keys
-    cv.line(KB_F[0], KB_F[2] + 3, KB_F[1], KB_F[2] + 3, DESK_SHADE)             # the keyboard's shadow in front of it
+    cv.line(KB[3][0], KB[3][1] + 4, KB[2][0], KB[2][1] + 4, WOOD)                 # under the keyboard's front lip
+foot_line = cv.m_edge(SIL['foot'], 'bottom', inside=False) & ~objects
+cv.fill(foot_line & cv.m_where(DESK_SHADE, DESK, PAPER, GLOW), WOOD)               # under the swivel foot

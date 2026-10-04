@@ -26,7 +26,9 @@ uv run easel new <piece> --size 176x128 --at 0,160    # scaffold (at = its place
 uv run easel paint <piece> [--upto N]                 # replay passages 00..N, write renders + look sheet, print measures
 uv run easel note <piece> "what I saw, what I'll do"  # dated journal entry
 uv run easel checkpoint <piece> [label]               # keep the current 1x render under out/checkpoints/
-uv run easel preview <piece>                          # the piece in the real site page ([site] in piece.toml)
+uv run easel preview <piece>                          # the piece in the real site page ([site] in piece.toml;
+                                                      #   blank=[images] and hide=[css selectors] drop page
+                                                      #   overlays drawn for older art)
 uv run easel metrics <img...>                         # any image against the pro PC-98 ranges
 ```
 
@@ -50,7 +52,11 @@ you changed, in place (RGBA).
 - **Light on what's painted:** `relight(mask, level, ramp, tile_on=...)`: each ink steps up its own ramp (a dict
   ink -> next lighter ink); `level` 1.5 = one step plus a 1/2 tile of the next. `tile_on` limits the tiled partial
   step to a surface's base inks so a texture stays coherent in the glow. Line inks left out of the ramp stay dark.
-- **Masks (selections):** `m_all`, `m_rect`, `m_poly`, `m_ellipse`, `m_where(*inks)`, `m_region(x, y)`,
+  `relight_halves(mask, level, ramp)`: the same in half steps for a surface that is already dithered (a wall's
+  two-ink texture, printed paper): a dither's dark ink lifts first (solid), then a checker one step up, and so on;
+  flat ground takes a 1/2 checker on the odd half steps. Use it wherever partial tiles would interfere into dust.
+- **Masks (selections):** `m_all`, `m_rect`, `m_poly`, `m_ellipse`, `m_where(*inks)`, `m_region(x, y)` (a flood
+  of the seed's ink; `inks=(a, b)` floods across a dithered field of several inks; `within=` fences it),
   `m_line`, `m_edge(mask, 'top,left')`, `dist_from(mask)` (rings out from a shape, for halos).
 - **Fences (mask colours):** `with cv.only_over(*inks):` / `never_over`, `protect`/`release`.
 - **Selections:** `copy(x0, y0, x1, y1)` -> clip, `paste(clip, x, y, transparent)`, `clip.flip()`, `clip.rot()`,
@@ -65,7 +71,8 @@ you changed, in place (RGBA).
 the box of everything, the light. 3. Lines back to front: each object clears its silhouette to a ground ink, then is
 inked. 4. Flats front to back, fenced `only_over(ground)`: occlusion is free; assert no ground is left. 5. Form
 shading, 6. light, 7. detail, 8. highlights, 9. palette tune. After every passage: `easel paint`, look at `@3x` and
-`look.png`, and write what you saw with `easel note`. Judge at 1x and 2x as well as zoomed.
+`look.png`, and write what you saw with `easel note`. Judge at 1x and 2x as well as zoomed. The look sheet's
+value / squint row (1x) answers "which region leads?": check it after any light or palette change.
 
 ## Gotchas learned on the pilots
 
@@ -75,3 +82,35 @@ shading, 6. light, 7. detail, 8. highlights, 9. palette tune. After every passag
 - A real base may be a resampled copy: measure its own regions (`easel metrics`, or `look.measure`) and match their
   line and tile density, not only the pro ranges. Crisper-than-its-surroundings is a seam.
 - Choose register merges only between inks at most one grid step apart in the scene's current timing.
+- A mask from an object's bounding box draws a rectangle when you rim it (`m_edge`). Use the object's own extent
+  (its inks inside its outline, or a polygon), and look at the rim at 6x.
+- Text on lit paper: print one ink *under* the paper's local ink (not black), and only a few rows; a 10px sheet with
+  print on half its rows reads as a dark striped object.
+
+## Recipes from mahou-pc (copy them; the passages are the worked example)
+
+`easel/pieces/mahou-pc/passages`: 00 room + re-timing + daylight removal, 01 camera and every object in 3D, 02 clear,
+03 lines, 04 flats, 04b form, 05 screen detail, 06 keys, 07 traced light, 08 print + rims + contact shadows,
+09 density match.
+
+- **Find the room's camera before drawing (01).** One-point rooms: VP and eye level from receding edges. The focal
+  distance `D` from something whose real proportions you know: a round seat's ellipse (height/width = sin of the
+  angle below eye level) or a box's depth vs its height. Scale from a door (~200cm). Then `proj(X, Y, Z)` (cm) puts
+  any point on the canvas, and new objects are built in their own frame and projected (`mon3`/`mon`, `on_desk`), not
+  eyeballed. PC-98 rooms are wide-angle (mahou_bedroom: D ~200 for a 500px picture); a guess of D decides which side
+  of a turned object you see.
+- **Trace light, set strength per surface (07).** Inverse-project each lit surface onto its plane (`on_plane_y`),
+  sum irradiance from a grid of points on the source (emission cos x incidence cos / r^2) with occluders as slabs and
+  discs. The trace gives the shape (terminator = the source's plane, shadow lines, falloff). Strength is a painter's
+  choice per surface (`steps(E, top, per_stop)`, quantised to the tile bands), because true falloff leaves anything
+  a metre away invisible. If the strict trace puts light where it reads as another source (the day's sun), cheat the
+  occluder, not the shape, and log it in the journal.
+- **Bounce** onto walls: each lit pixel of the desk/paper as a Lambertian emitter, blocked by solid bodies; light
+  it with `relight_halves` so the wall's own dither stays clean.
+- **Re-timing a picture removes the old light too (00):** sun patches, sunlit views, white sun highlights on
+  curtains, shadow stubs. Do it before `cv.base = cv.idx.copy()`: it is the scene's timing, not the painting.
+- **A picture inserted into another** (a skyline in a window) gets inks by role (`CITY_INKS`: its lit windows to the
+  glow ink, lamps to white), not by nearest colour, which dims every light.
+- **Match a resampled base (09):** if the base was resampled (uneven widths of repeated marks, beating dithers), put
+  the painted pixels through the same journey (nearest up to the original width, bilinear back, snap to the 16
+  inks), only where the new line art is; leave lighting bands crisp.
