@@ -16,3 +16,7 @@ assets/*/out/scratch/
 # retina screenshots are big; the 1x ones and the contact sheet are enough in git
 assets/*/out/review/*/context@2x.png
 assets/*/out/*/review/*/context@2x.png
+# real PC-98 rooms and edits derived from them are third-party art: keep only scripts and notes
+assets/panda-room/real-candidates/*
+!assets/panda-room/real-candidates/*.py
+!assets/panda-room/real-candidates/README.md
