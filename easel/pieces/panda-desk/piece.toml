@@ -1,0 +1,39 @@
+# panda-desk: pilot for the PC-98 easel. The desk corner of Panda's Room (layout B), at the scene's own scale:
+# this 176x128 canvas is the 448x320 scene's pixels x 0..175, y 160..287.
+[canvas]
+w = 176
+h = 128
+at = [0, 160]
+seed = 7
+
+[look]
+zoom = 3
+detail_zoom = 4
+regions = { monitor = [40, 0, 130, 78], desk_front = [0, 70, 120, 128] }
+
+[[refs]]
+path = "explore/places/commandcenter.png"
+box = [0, 150, 120, 270]
+label = "commandcenter keyboard+screen"
+
+[[refs]]
+path = "explore/places/night_musician_bedroom.png"
+box = [0, 80, 120, 200]
+label = "musician stereo"
+
+[[refs]]
+path = "computer_crop.gif"
+box = [0, 60, 120, 190]
+label = "computer_crop monitor"
+
+[[refs]]
+path = "explore/places/city_overlook.png"
+box = [400, 0, 520, 120]
+label = "overlook lamp glow"
+
+[site]
+page = "room.html"
+path = "img/room/room@4x.png"
+base = "assets/panda-room/out/final/room.png"
+scale = 4
+blank = ["img/room/twinkle@4x.png"]

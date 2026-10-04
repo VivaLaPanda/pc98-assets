@@ -10,7 +10,14 @@ uv run pc98 new reading-icon              # assets/reading-icon/{brief.md, draw.
 uv run pc98 gen reading-icon books "..." --refs assets/blog-icon/refs/style_win98_icons.png --n 2   # optional refs
 uv run pc98 render reading-icon           # runs draw.py: out/<name>.png + <name>_recolor.png + review sheets
 uv run pc98 compare out.png blog assets/reading-icon/out/*_recolor.png       # each candidate in the real sidebar
+uv run easel new desk-corner --size 176x128 --at 0,160   # paint a scene or a piece of one on the PC-98 easel
+uv run easel paint desk-corner            # replay its passages: renders, steps, look sheet with references + measures
 ```
+
+**The easel** (`src/easel/`, `easel/`) is for scenes and anything that must pass for real PC-98 background art: a
+simulated 16-register screen with GRCG-style 8x8 tiles and period tools only (no blending, no image models), painted
+as replayable passages with a working journal. Start with `easel/notes/technique.md` (the craft, with checkable
+rules), `easel/notes/research/pc98-craft.md` (sources and measurements) and `easel/notes/easel_guide.md` (the tool).
 
 ## Why a separate repo
 
@@ -100,7 +107,10 @@ the result as a Grid and repaint in code: lines along forms, flat areas where th
 material, highlights by hand -> `pc98 preview --page explore/<page>.html --override img/explore/places/<x>.png=...`.
 For a full scene, the paint-over in `assets/panda-room/` is the worked example: trace an image-model underlay off
 gridded zooms (`pc98 zoom`), lay flat planes, light as hand-placed hard-stepped fields, cel shadows from offset masks.
-Its `NOTES.md` lists the techniques that worked and the ones that didn't.
+Its `NOTES.md` lists the techniques that worked and the ones that didn't. That paint-over was rejected as amateur;
+new scene work goes on the easel instead: `easel/pieces/mahou-pc/` paints a glowing PC into a real PC-98 room at
+night (start from a real picture, re-time it with registers, light with `relight`), and `easel/pieces/panda-desk/`
+starts a desk corner from a blank screen.
 
 ## Making an asset, end to end
 
@@ -126,6 +136,11 @@ Its `NOTES.md` lists the techniques that worked and the ones that didn't.
    kept outside `<dir>`; run 3-6 separate judge agents on a different model with the prompts in `pc98/blind.py`,
    each reading only its own images. Fix what they name, not what they don't. Recognisable source art (the Windows 98
    originals) is a confound no drawing can beat.
+**Scenes go on the easel** instead of `draw.py`: `uv run easel new <piece> --size WxH --at X,Y`, then passages in the
+order of `easel/notes/technique.md` (palette, underdrawing, lines, flats, form, light, detail, highlights, tune),
+`uv run easel paint <piece>` and a look at `out/look.png` after each, `uv run easel note <piece> "..."` for what you
+saw, `uv run easel preview <piece>` in the real page, `uv run easel checkpoint <piece>` for keepers.
+
 7. **Hand over.** Copy the chosen `out/<name>.png` and `out/<name>_recolor.png` into the site's `img/icons/` under
    the name the site uses. Never commit to the site from here; the user integrates.
 
@@ -146,18 +161,28 @@ Its `NOTES.md` lists the techniques that worked and the ones that didn't.
 | `pc98 compose BASE OUT --put PNG@X,Y` | paste sprites into a site image at exact pixels |
 | `pc98 zoom IMG OUT X0 Y0 X1 Y1` | gridded zoom in native coordinates for tracing; `-z`, `--beside` a second image |
 | `pc98 blind DIR --real ... --new ...` | blind-test images and key |
+| `easel new PIECE --size WxH --at X,Y` | start an easel piece (`easel/pieces/PIECE/`) |
+| `easel paint PIECE [--upto N]` | replay its passages; 1x/2x/3x, steps, look sheet, layer (if on a real base), measures |
+| `easel note PIECE "TEXT"` | dated journal entry |
+| `easel checkpoint PIECE [LABEL]` | keep the current render |
+| `easel preview PIECE` | composite into the site page (`[site]` in piece.toml) and screenshot it |
+| `easel metrics IMG...` | thinline / edge / checker / flat / black against pro PC-98 interiors |
 
 ## Layout
 
 ```
 src/pc98/      the library and CLI: palette, pixel (Grid), trace, gen, preview, sheet, icon, scene, blind
+src/easel/     the PC-98 easel: canvas (registers, tiles, pens, masks, fences, relight), patterns, metrics, base
+easel/notes/   technique.md (the brief), easel_guide.md (the tool), research/ (sources, measurements)
+easel/pieces/  one folder per painting: piece.toml, passages/, journal.md, out/
 templates/     draw.py for new assets
 assets/NAME/   brief.md, draw.py (the source of truth), refs/ (gen/ and trace/ are gitignored), out/ (finals, sheets,
                review/ with in-context screenshots)
 ledger.csv     fal spend (no secrets)
 ```
 Gitignored: `.venv/`, `.preview/` and `.scratch/` (temporary pages and files), `assets/*/refs/gen/`,
-`assets/*/refs/trace/`, `assets/*/out/scratch/`.
+`assets/*/refs/trace/`, `assets/*/out/scratch/`, easel look sheets and previews (they embed third-party crops), and
+`easel/pieces/mahou-pc/out/` (paints into a third-party room).
 
 ## The cover filter and style guide
 

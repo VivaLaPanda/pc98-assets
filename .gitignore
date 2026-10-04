@@ -20,3 +20,9 @@ assets/*/out/*/review/*/context@2x.png
 assets/panda-room/real-candidates/*
 !assets/panda-room/real-candidates/*.py
 !assets/panda-room/real-candidates/README.md
+# easel: look sheets embed reference crops (third-party art), previews are site screenshots, index maps regenerate;
+# mahou-pc paints into a third-party room, so all of its renders stay local (its passages and journal are tracked)
+easel/pieces/*/out/look.png
+easel/pieces/*/out/preview/
+easel/pieces/*/out/index.npy
+easel/pieces/mahou-pc/out/

@@ -1,0 +1,36 @@
+# mahou-pc: the glowing computer on the desk of the night mahou_bedroom (the real PC-98 room Panda's Room is built on).
+# The canvas is the whole 500x268 room, so every output is in the room's coordinates; out/mahou-pc-layer.png holds
+# only the painted pixels. out/ is gitignored: it contains the third-party room.
+[canvas]
+w = 500
+h = 268
+at = [0, 0]
+seed = 3
+
+[look]
+zoom = 2
+detail_zoom = 3
+focus = [330, 60, 450, 200]          # the desk corner, before/after
+measure = [330, 60, 450, 200]
+regions = { desk = [356, 84, 440, 160] }
+
+[[refs]]
+path = "explore/places/mahou_bedroom.png"
+box = [340, 60, 440, 160]
+label = "this room by day (original)"
+
+[[refs]]
+path = "explore/places/commandcenter.png"
+box = [0, 150, 100, 250]
+label = "commandcenter screen+keys"
+
+[[refs]]
+path = "computer_crop.gif"
+box = [0, 60, 100, 160]
+label = "computer_crop CRT"
+
+[site]
+page = "room.html"
+path = "img/room/room@4x.png"
+scale = 4
+blank = ["img/room/twinkle@4x.png"]
