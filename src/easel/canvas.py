@@ -123,6 +123,35 @@ class Under:
         self.labels.append((x, y, text, self._rgba(col)[:3]))
 
 
+class Persp:
+    """Perspective declarations, for `easel vp-check`. Declaring paints nothing: a passage names the scene's
+    vanishing points and, for each object it draws, a few of the straight edges it was drawn with (approximate
+    canvas points are enough). The check finds the painted edge near each one and measures where it really runs.
+
+    to: 'room' (or any name given to vp()) = a receding edge, meets that vanishing point; 'h' = a frontal level edge;
+        'v' = plumb; (x, y) = a turned object's own vanishing point, which must sit on the horizon.
+    control=True marks the base picture's own edges: they measure how true the room itself is."""
+
+    def __init__(self):
+        self.vps = {}
+        self.horizon = None
+        self.edges = []
+
+    def vp(self, name, xy, horizon=False):
+        self.vps[name] = (float(xy[0]), float(xy[1]))
+        if horizon or self.horizon is None:
+            self.horizon = float(xy[1])
+
+    def edge(self, obj, p0, p1, to='room', control=False):
+        self.edges.append(dict(obj=obj, p0=(float(p0[0]), float(p0[1])), p1=(float(p1[0]), float(p1[1])),
+                               to=to, control=control))
+
+    def edges_of(self, obj, pts, to='room', control=False):
+        """Several edges of one kind: pts = [(p0, p1), ...]."""
+        for p0, p1 in pts:
+            self.edge(obj, p0, p1, to, control)
+
+
 # --------------------------------------------------------------------------------- geometry
 
 def bresenham(x0, y0, x1, y1):
@@ -188,6 +217,7 @@ class Canvas:
         self._fence = None                            # bool[16]: True = may be written over
         self._protected = set()
         self.base = None                              # the real picture this piece started from, if any
+        self.persp = Persp()                          # vanishing points and declared edges, for vp-check
 
     # ---- palette
     def pal_set(self, i, color, name=None):

@@ -51,3 +51,8 @@ _x, _y = tm(-2.0, -_W2, 0.5)
 cv.line(round(_x), round(_y) + 1, round(_x) - 2, round(_y) + 4, RED)
 TM_RIB = cv.m_line(round(_x), round(_y) + 1, round(_x) - 2, round(_y) + 4)
 cv.masks['lesswrong'] = TM_BOOK | TM_RIB | cv._mask_pts(TM_TABS)
+
+# vp-check: a book lying askew on the bed runs to its own VPs (on the horizon); its uprights are plumb
+cv.persp.edge('tome', tm(-_L2, -_W2, TM_H), tm(_L2, -_W2, TM_H), own_vp(*TM_U))
+cv.persp.edge('tome', tm(-_L2, -_W2), tm(_L2, -_W2), own_vp(*TM_U))
+cv.persp.edge('tome', tm(_L2, -_W2, TM_H), tm(_L2, _W2, TM_H), own_vp(*TM_V))

@@ -15,6 +15,7 @@ Commands:
   easel checkpoint <piece> [label]                 keep a copy of the current render under out/checkpoints/
   easel preview <piece>                            composite into the real site page and screenshot it
   easel metrics <img...>                           measure images against the pro PC-98 ranges
+  easel vp-check <piece> [--tol 1] [--label x]     do the painted edges meet the vanishing points? (overlay + table)
 Read easel/notes/easel_guide.md before painting.
 """
 
@@ -35,6 +36,7 @@ from pc98.config import ROOT, SITE, font
 from . import base as BASE
 from . import metrics as MX
 from . import patterns as P
+from . import vpcheck as VPC
 from .canvas import Canvas, T, Tile, Clip, bresenham, ellipse_points
 
 PIECES = ROOT / 'easel' / 'pieces'
@@ -193,7 +195,7 @@ def _text_block(lines, w=520):
     img = Image.new('RGB', (w, h), BG)
     d = ImageDraw.Draw(img)
     for i, ln in enumerate(lines):
-        col = (255, 150, 150) if ('LOW' in ln or 'HIGH' in ln) else FG
+        col = (255, 150, 150) if ('LOW' in ln or 'HIGH' in ln or 'FAIL' in ln) else FG
         d.text((4, 4 + 18 * i), ln, fill=col, font=f)
     return img
 
@@ -391,6 +393,31 @@ def cmd_metrics(a):
             print('  ' + ln)
 
 
+def cmd_vpcheck(a):
+    """Measure every declared edge (cv.persp) on the finished picture; write the overlay sheet and the table."""
+    d, cfg = load(a.piece)
+    cv, _ = run(a.piece)
+    if not cv.persp.vps:
+        raise SystemExit('no vanishing points declared: cv.persp.vp("room", VP) in a passage, then edges')
+    res = VPC.measure(cv, a.tol)
+    lines = VPC.report(res, a.tol)
+    out = d / 'out'
+    out.mkdir(exist_ok=True)
+    suffix = f'-{a.label}' if a.label else ''
+    title = f'{a.piece} vp-check{" " + a.label if a.label else ""}: tolerance {a.tol:.1f}px'
+    sheet = [VPC.overlay(cv, res, z=a.zoom, title=title, font=font(13))]
+    if a.box:
+        box = tuple(int(v) for v in a.box.split(','))
+        sheet.append(VPC.overlay(cv, res, z=a.box_zoom, box=box, title=f'detail {box}', font=font(13)))
+    sheet.append(_text_block(lines, w=max(i.width for i in sheet)))
+    _col(sheet).save(out / f'vp-check{suffix}.png')
+    (out / f'vp-check{suffix}.txt').write_text('\n'.join(lines) + '\n')
+    print('\n'.join(lines))
+    print(f'-> {out}/vp-check{suffix}.png')
+    if any(r['status'] == 'FAIL' for r in res):
+        sys.exit(1)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog='easel', description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -400,5 +427,9 @@ def main(argv=None):
     s = sub.add_parser('checkpoint'); s.add_argument('piece'); s.add_argument('label', nargs='?'); s.set_defaults(f=cmd_checkpoint)
     s = sub.add_parser('preview'); s.add_argument('piece'); s.set_defaults(f=cmd_preview)
     s = sub.add_parser('metrics'); s.add_argument('images', nargs='+'); s.set_defaults(f=cmd_metrics)
+    s = sub.add_parser('vp-check'); s.add_argument('piece'); s.add_argument('--tol', type=float, default=1.0)
+    s.add_argument('--label'); s.add_argument('--zoom', type=int, default=3)
+    s.add_argument('--box', help='x0,y0,x1,y1: also a zoomed detail of this box'); s.add_argument('--box-zoom', type=int, default=6)
+    s.set_defaults(f=cmd_vpcheck)
     a = ap.parse_args(argv)
     a.f(a)

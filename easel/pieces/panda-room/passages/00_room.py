@@ -30,3 +30,48 @@ VP, D = (M['VP'][0], M['VP'][1] + TOP), M['D']
 
 def proj(X, Y, Z):
     return (round(VP[0] + D * X / Z), round(VP[1] - D * Y / Z))
+
+
+# -- perspective declarations for `easel vp-check` (paint nothing). The room is one-point: everything square to it
+# recedes to VP, its fronts are level, its uprights plumb. Loose things lying askew get their own VP, on the horizon.
+def own_vp(dx, dz):
+    """The vanishing point of the horizontal direction (dx, dz) (X across, Z into the room)."""
+    return (VP[0] + D * dx / dz, VP[1])
+
+
+cv.persp.vp('room', VP, horizon=True)
+# controls: the base picture's own edges (the original artist's room)
+cv.persp.edge('back rail', (60, 59.5), (420, 59.5), 'h', control=True)
+cv.persp.edge('left rail', (0, 39), (40, 51), control=True)
+cv.persp.edge('left scroll', (0, 65), (30, 71), control=True)
+cv.persp.edge('right rail', (432, 58), (466, 48), control=True)
+cv.persp.edge('closet sill', (466, 314), (497, 343), control=True)
+cv.persp.edge('desk', (345, 171), (378, 191), control=True)
+cv.persp.edge('desk', (383, 191), (430, 191), 'h', control=True)
+cv.persp.edge('door frame', (186, 150), (186, 225), 'v', control=True)
+cv.persp.edge('door frame', (287, 150), (287, 225), 'v', control=True)
+cv.persp.edge('shelf front', (432, 80), (432, 230), 'v', control=True)
+cv.persp.edge('closet post', (469, 100), (469, 300), 'v', control=True)
+cv.persp.edge('poster', (65, 75), (65, 145), 'v', control=True)
+
+
+def _up(p):
+    return (p[0], p[1] + TOP)
+
+
+# mahou-pc's objects, kept: the monitor (a swivel set turned 24 degrees to the room), the newspaper and the phone
+# (thrown down askew). Each runs to its own VPs, which must sit on the horizon.
+_th = M['TH']
+_F = [_up(p) for p in M['FACE']]                        # TL TR BR BL
+cv.persp.edge('pc', _F[0], _F[1], own_vp(np.cos(_th), -np.sin(_th)))
+cv.persp.edge('pc', _F[0], _F[3], 'v')
+cv.persp.edge('pc', _F[1], _F[2], 'v')
+_a = np.radians(M['NP_DEG'])
+_N = [_up(p) for p in M['NP']]                          # far-left, far-right, near-right, near-left
+cv.persp.edge('newspaper', _N[0], _N[1], own_vp(np.cos(_a), np.sin(_a)))
+cv.persp.edge('newspaper', _N[3], _N[0], own_vp(-np.sin(_a), np.cos(_a)))
+_a = np.radians(M['PH_DEG'])
+_ph = lambda u, v: _up(M['ph'](u, v, M['PH_T']))
+_w, _l = M['PH_W'] / 2, M['PH_L'] / 2
+cv.persp.edge('phone', _ph(-_w, -_l), _ph(-_w, _l), own_vp(np.sin(_a), -np.cos(_a)))
+cv.persp.edge('phone', _ph(_w, -_l), _ph(_w, _l), own_vp(np.sin(_a), -np.cos(_a)))

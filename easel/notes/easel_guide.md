@@ -30,6 +30,8 @@ uv run easel preview <piece>                          # the piece in the real si
                                                       #   blank=[images] and hide=[css selectors] drop page
                                                       #   overlays drawn for older art)
 uv run easel metrics <img...>                         # any image against the pro PC-98 ranges
+uv run easel vp-check <piece> [--tol 1] [--label x] [--box x0,y0,x1,y1]
+                                                      # do the painted edges meet the vanishing points?
 ```
 
 `paint` writes `out/<piece>.png` (1x), `@2x`, `@3x`, `steps.png` (the picture after each passage), `piece.json`
@@ -86,6 +88,39 @@ value / squint row (1x) answers "which region leads?": check it after any light 
   (its inks inside its outline, or a polygon), and look at the rim at 6x.
 - Text on lit paper: print one ink *under* the paper's local ink (not black), and only a few rows; a 10px sheet with
   print on half its rows reads as a dark striped object.
+
+## Perspective check (a standard step for any object placed in a perspective scene)
+
+An object that is right in its own frame can still be wrong in the room's: Panda's Room's TV was built in 3D, turned
+15 degrees, and this wide-angle camera keystoned its face into a slanted parallelogram that no PC-98 artist would
+have drawn. `easel vp-check` catches that by measuring what is painted, not what was meant.
+
+1. **Declare the camera** once (after the room's camera is found):
+   `cv.persp.vp('room', VP, horizon=True)`. Add **controls**: a dozen of the base picture's own edges
+   (`cv.persp.edge('back rail', p0, p1, 'h', control=True)`), receding ones, level ones and plumb ones. They show how
+   true the original artist's room is, which is the bar for everything you add.
+2. **Declare each object's edges** in the passage that paints it, right after the geometry:
+   `cv.persp.edge('tv', tv_pt(0, 0), tv_pt(1, 0), 'h')`. `to` is `'room'` (recedes to that VP), `'h'` (a frontal
+   level edge), `'v'` (plumb) or an `(x, y)`: the own vanishing point of something lying askew, from
+   `own_vp(dx, dz)`, which the check also requires to sit on the horizon. Declare the top and bottom of a box's front,
+   both uprights, and a receding top edge and bottom edge. Approximate points are enough: the check finds the
+   painted edge within 2.5px of the declaration.
+3. **Run** `uv run easel vp-check <piece> --label before` before fixing and again after. For each edge it fits the
+   straight edge the ink transitions really make (RANSAC, then least squares) and reports:
+   - `miss`: how far that edge, extended, passes from its vanishing point (or its drift from level/plumb). A short
+     edge can't aim at a far point better than its pixels allow, so `miss` is informative, not the gate.
+   - `off`: how far the painted edge strays from the true line through its middle (the ray from the VP, or the level
+     or plumb line) over its own length. **This is the gate: off <= 1px at 1x** (the room's controls run 0-0.9px).
+   - `unseen`: the declared edge isn't painted there (hidden, or the declaration is wrong).
+
+   It exits non-zero on any FAIL, writes `out/vp-check[-label].png` and `.txt`. The sheet shows the scene dimmed,
+   the horizon and VPs, each true ray (green), each object's painted edge extended (magenta; controls cyan; failures
+   red), labelled with `off`. Use `--box` for a zoomed detail.
+4. **Fix by construction, not by nudging pixels.** Things standing on the floor or against a wall in a one-point
+   room should be square to it: fronts level and plumb, sides to the VP. Turning them looks natural in 3D and wrong
+   on a hand-drawn wide-angle room. Only loose things (a book on a bed, a phone, a newspaper) lie askew; give them an
+   own VP on the horizon. Flat stamps (a pad, an envelope) must be frontal and level, and need a contact shadow
+   under them to stand on the floor rather than float over it.
 
 ## Recipes from mahou-pc (copy them; the passages are the worked example)
 

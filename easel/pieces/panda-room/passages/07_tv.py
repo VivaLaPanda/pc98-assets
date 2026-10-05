@@ -1,9 +1,12 @@
 # 07 the TV, bigger: a 13" CRT on a low wooden board on the floor in front of the desk's knee space, between the
 # trash can and the bookshelf (the only floor that's free at the PC's depth: nearer, this 103-degree camera blows a
-# set up past the PC's size). Turned 15 degrees toward the bed. It's on, dim: a letterboxed film (Letterboxd) with a
-# line of subtitles, its glow a small cool pool on the floor in front. Dark plastic in the room's shade: the top
-# takes the PC's light from behind, the side facing the window a step lighter than the front (the picture's rule).
-TV_A = np.radians(15)
+# set up past the PC's size). Square to the room like the desk and the shelf beside it (turned 15 degrees, this
+# camera keystoned its face into a slanted parallelogram: vp-check had its top and bottom 8-10px off level), its
+# face level and plumb, its top and the side toward the window running to the VP, the tube's back tapering behind.
+# It's on, dim: a letterboxed film (Letterboxd) with a line of subtitles, its glow a small cool pool on the floor in
+# front. Dark plastic in the room's shade: the top takes the PC's light from behind, the side facing the window a
+# step lighter than the front (the picture's rule).
+TV_A = 0.0
 TV_F = np.array([-np.sin(TV_A), 0., -np.cos(TV_A)])        # out of the screen
 TV_R = np.array([np.cos(TV_A), 0., -np.sin(TV_A)])         # across the face, our left to right
 TV_P0 = np.array([130., FLOOR_Y + 4, 155.])                # bottom centre of the face, on the board
@@ -30,11 +33,12 @@ def tv_quad(u0, v0, u1, v1, w=0.):
 TRASH = cv.m_poly([(365, 239), (369, 236), (382, 236), (387, 239), (387, 289), (382, 291), (369, 291), (365, 289)])
 _keep = ~TRASH                                              # the can stands in front of the set's back corner
 
-# -- the board: plain wood, room-aligned, its right edge on the bookshelf's front plane (X 150)
+# -- the board: plain wood, square to the room, its right edge on the bookshelf's front plane (X 150), deep
+# enough to hold the tube's back
 _y0, _y1 = FLOOR_Y, FLOOR_Y + 4
-TV_BOARD_TOP = cv.m_poly([pf((112, _y1, 147)), pf((150, _y1, 147)), pf((150, _y1, 180)), pf((112, _y1, 180))])
+TV_BOARD_TOP = cv.m_poly([pf((112, _y1, 147)), pf((150, _y1, 147)), pf((150, _y1, 184)), pf((112, _y1, 184))])
 TV_BOARD_FRONT = cv.m_poly([pf((112, _y1, 147)), pf((150, _y1, 147)), pf((150, _y0, 147)), pf((112, _y0, 147))])
-TV_BOARD_LEFT = cv.m_poly([pf((112, _y1, 147)), pf((112, _y1, 180)), pf((112, _y0, 180)), pf((112, _y0, 147))])
+TV_BOARD_LEFT = cv.m_poly([pf((112, _y1, 147)), pf((112, _y1, 184)), pf((112, _y0, 184)), pf((112, _y0, 147))])
 TV_BOARD = (TV_BOARD_TOP | TV_BOARD_FRONT | TV_BOARD_LEFT) & _keep
 cv.fill(TV_BOARD_TOP & _keep, DESK_SHADE)
 cv.fill(TV_BOARD_LEFT & _keep, WOOD)
@@ -47,8 +51,10 @@ _b_top = cv.m_poly([tv_pt(0.10, 0.06, TV_D1), tv_pt(0.90, 0.06, TV_D1), tv_pt(0.
 _b_left = cv.m_poly([tv_pt(0.10, 0.06, TV_D1), tv_pt(0.22, 0.20, TV_D2), tv_pt(0.22, 0.86, TV_D2), tv_pt(0.10, 0.96, TV_D1)])
 TV_BULGE = (_b_top | _b_left) & _keep
 cv.fill(TV_BULGE, DARK)
-cv.fill(cv.m_edge(_b_top, 'top') & _keep, SLATE)                     # the PC's light along its back
-cv.fill(cv.m_edge(TV_BULGE, 'all') & _keep & ~cv.m_edge(_b_top, 'top'), BLACK)
+cv.tile(_b_top & _keep, '1/4', DARK, SLATE)                           # its top faces up toward the PC
+_rim = cv.m_edge(_b_top, 'top,right') & ~cv.m_edge(_b_top, 'bottom')
+cv.fill(cv.m_edge(TV_BULGE, 'all') & _keep & ~_rim, BLACK)
+cv.fill(_rim & _keep, SLATE)                                          # the PC's light along its back and taper
 
 # -- the bezel box: front, top, the side toward the window
 TV_FRONT = cv.m_poly(tv_quad(0, 0, 1, 1))
@@ -121,3 +127,14 @@ _x0, _y0 = tv_pt(0.15, 1.0); _x1, _ = tv_pt(0.85, 1.0)                # the scre
 cv.line(round(_x0), round(_y0) + 2, round(_x1), round(_y0) + 1, DESK)
 
 cv.masks['tv'] = TV_BOARD | TV_BULGE | TV_BOX
+
+# vp-check: a set standing on the floor is square to the room (face level and plumb, sides to VP); so is its board
+cv.persp.edge('tv', tv_pt(0, 0), tv_pt(1, 0), 'h')
+cv.persp.edge('tv', tv_pt(0, 1), tv_pt(1, 1), 'h')
+cv.persp.edge('tv', tv_pt(0, 0), tv_pt(0, 1), 'v')
+cv.persp.edge('tv', tv_pt(1, 0), tv_pt(1, 1), 'v')
+cv.persp.edge('tv', tv_pt(0, 0), tv_pt(0, 0, TV_D1))
+cv.persp.edge('tv', tv_pt(0, 1), tv_pt(0, 1, TV_D1))
+cv.persp.edge('tv board', pf((112, FLOOR_Y + 4, 147)), pf((150, FLOOR_Y + 4, 147)), 'h')
+cv.persp.edge('tv board', pf((112, FLOOR_Y, 147)), pf((150, FLOOR_Y, 147)), 'h')
+cv.persp.edge('tv board', pf((112, FLOOR_Y + 4, 147)), pf((112, FLOOR_Y + 4, 165)))

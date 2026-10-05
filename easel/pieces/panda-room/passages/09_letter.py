@@ -24,3 +24,8 @@ for _y in range(LT_Y + 2, LT_Y + 11):                               # the CRT's 
 cv.dots([(LT_X + 15, LT_Y + 9), (LT_X + 14, LT_Y + 10)], GLOW)
 LETTER = cv.m_rect(LT_X, LT_Y, LT_X + 18, LT_Y + 11)
 cv.masks['letter'] = LETTER
+
+# vp-check: an envelope standing against the back wall is frontal: level and plumb
+cv.persp.edge('letter', (LT_X + 1, LT_Y), (LT_X + 17, LT_Y), 'h')
+cv.persp.edge('letter', (LT_X, LT_Y + 1), (LT_X, LT_Y + 10), 'v')
+cv.persp.edge('letter', (LT_X + 18, LT_Y + 1), (LT_X + 18, LT_Y + 10), 'v')

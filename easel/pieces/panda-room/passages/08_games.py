@@ -46,6 +46,15 @@ cv.fill(cv.m_edge(GM_CONSOLE, 'all'), BLACK)
 cv.polyline([gm(GM_X0, _t, GM_Z0), gm(GM_X1, _t, GM_Z0)], PAPER)                # the front top edge, lit
 cv.polyline([gm(GM_X0, _t, GM_Z0 + 1), gm(GM_X0, _t, GM_Z1)], PAPER)            # and the left one
 
+# seated on the floor: a contact shadow along its bottom edges, a step darker than the floor (2px out on the right,
+# away from the moon), so it stands rather than floats
+_flo = {FLOOR: DARK, SLATE: DARK, GLOW: FLOOR}
+_below, _right = np.roll(GM_BOX, 1, 0) & ~GM_BOX, np.roll(GM_BOX, 1, 1) & ~GM_BOX
+_foot = _below | _right | np.roll(_right, 1, 1)
+_foot &= ~GM_BOX & (np.arange(cv.h)[:, None] > gm(GM_X1, _t, GM_Z0)[1])          # on the floor, below its top
+for _a, _c in _flo.items():
+    cv.replace(_a, _c, _foot & ~GM_CONSOLE)
+
 # the pad: a dogbone on the floor, the D-pad, select/start, the four buttons in a diamond
 PAD_X, PAD_Y = 340, 333
 PAD_ART = '''
@@ -61,6 +70,11 @@ KCPPPPPKKKKKKKKPPPPPCK
 cv.stamp(PAD_X, PAD_Y, PAD_ART, {'K': BLACK, 'P': PAPER, 'C': CURTAIN, 'D': DARK, 'B': FLOOR, 'G': GLOW,
                                   'R': RED, 'Y': BEDSPREAD})
 _rows = PAD_ART.strip('\n').splitlines()
+# its shadow: under the grips and in the gap between them, so it lies on the floor rather than over it
+_psh = cv._mask_pts([(PAD_X + x, PAD_Y + 8) for x in list(range(2, 7)) + list(range(16, 21))]
+                    + [(PAD_X + x, PAD_Y + 6) for x in range(7, 15)] + [(PAD_X + 22, PAD_Y + y) for y in range(2, 7)])
+for _a, _c in _flo.items():
+    cv.replace(_a, _c, _psh)
 GM_PAD = cv._mask_pts([(PAD_X + x, PAD_Y + y) for y, r in enumerate(_rows) for x, ch in enumerate(r) if ch not in '. '])
 # its cord: out of the top, a loose S across the floor to the first port
 _p = gm(GM_X0 + 3, _t - 2.5, GM_Z0)
@@ -73,3 +87,11 @@ GM_CORD &= ~GM_CONSOLE & ~GM_PAD
 cv.fill(GM_CORD, BLACK)
 
 cv.masks['controller'] = GM_CONSOLE | GM_PAD | GM_CORD
+
+# vp-check: the console square to the room; the pad lies square too (its stamp's top and bottom level)
+cv.persp.edge('console', gm(GM_X0, _t, GM_Z0), gm(GM_X1, _t, GM_Z0), 'h')
+cv.persp.edge('console', gm(GM_X0, _b, GM_Z0), gm(GM_X1, _b, GM_Z0), 'h')
+cv.persp.edge('console', gm(GM_X0, _t, GM_Z0), gm(GM_X0, _t, GM_Z1))
+cv.persp.edge('console', gm(GM_X0, _b, GM_Z0), gm(GM_X0, _b, GM_Z1))
+cv.persp.edge('console', gm(GM_X1, _t, GM_Z0), gm(GM_X1, _b, GM_Z0), 'v')
+cv.persp.edge('pad', (PAD_X + 2, PAD_Y), (PAD_X + 19, PAD_Y), 'h')
