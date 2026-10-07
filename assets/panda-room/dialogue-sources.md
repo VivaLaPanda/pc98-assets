@@ -144,3 +144,15 @@ more current than the user's MyAnimeList (newest list update 2018-05-17, 466 ent
 | bump repeat | I've got to go meet up with a friend of mine. | verbatim |  | Katawa Shoujo / Meiko Ibarazaki (Emi's mother) | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-emi.rpy#L3360 |
 
 Totals (79 lines on the page): 24 original, 31 verbatim, 7 translated, 9 adapted, 8 interpolated.
+
+**The contact page (2026-10-07).** /contact.html became a VN choice menu ("How do you want to reach me?") with the same
+rules; its lines live in vivalapanda.moe/js/contact.js.
+
+| slot | final line | kind | original (if changed) | work / character | source |
+|---|---|---|---|---|---|
+| contact prompt | How do you want to reach me? | original (plain; the approved menu question) |  | - | - |
+| contact twitter | Don't be shy, I'd love to hear from you. | interpolated (what you wrote → hearing from you) | Don't be shy, I'd love to see what you wrote. | Doki Doki Literature Club! / Monika | https://github.com/Monika-After-Story/DDLCModTemplate/tree/master/original_story_scripts |
+| contact signal | Don't worry, your secret's safe with me. | verbatim |  | Katawa Shoujo / Misha | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-emi.rpy#L1080 |
+| contact discord | Copied! You can call me vivalapanda. | interpolated (as the room's phone line) | You can call me Rin. | Katawa Shoujo / Rin Tezuka | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-wednesday.rpy#L2836 |
+| contact discord (copy failed) | Huh? It didn't copy... it's vivalapanda! | original (plain, functional; same as the room) |  | - | - |
+| contact letter | Write to me@panda.moe, okay? I'll write back. | original (the room's letter repeat line, with the address) |  | - | - |
