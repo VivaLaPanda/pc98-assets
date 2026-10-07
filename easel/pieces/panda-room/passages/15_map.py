@@ -4,7 +4,7 @@
 # street grid, a river running down into a bay, a highway in the map's yellow, and two bright pushpins marking
 # friends; two dull pins hold its top corners. The CRT is below and to the right, so the sheet throws a 1px shadow
 # up and to the left on the wall, and the pins' shadows fall the same way.
-MP_X0, MP_Y0, MP_W, MP_H = 346, 23, 36, 24
+MP_X0, MP_Y0, MP_W, MP_H = 352, 27, 25, 17                 # (round 4: 36x24 -> 25x17, rank 14)
 MP_X1, MP_Y1 = MP_X0 + MP_W - 1, MP_Y0 + MP_H - 1
 MAP = cv.m_rect(MP_X0, MP_Y0, MP_X1, MP_Y1)
 _u, _v = _xs - 0.5 - MP_X0, _ys - 0.5 - MP_Y0                      # map-local pixel coordinates
@@ -14,25 +14,25 @@ for _a, _c in {WALL: WALL_SHADE, WALL_SHADE: DARK}.items():
     cv.replace(_a, _c, _shadow)
 
 _in = MAP & ~cv.m_edge(MAP)
-_dim = _in & (_u >= 12) & (_u < 24)                                  # the middle panel, turned from the window
+_dim = _in & (_u >= 8) & (_u < 16)                                   # the middle panel, turned from the window
 _lit = _in & ~_dim
 cv.fill(_lit, CURTAIN)
 cv.fill(_dim, WALL)
 # streets: a loose grid (not every block the same), lighter than the blocks
-_st = _in & (np.isin(_v, (3, 8, 17, 21)) | np.isin(_u, (4, 9, 15, 20, 27, 31)))
+_st = _in & (np.isin(_v, (3, 11, 14)) | np.isin(_u, (4, 11, 19)))
 cv.replace(CURTAIN, PAPER, _st)
 cv.replace(WALL, CURTAIN, _st)
 # the river, down from the top right into a bay at the bottom left
-_rv = 4.0 + 12.0 * (1 - _u / 35.0) + 1.6 * np.sin(_u / 4.0)
+_rv = 3.0 + 9.0 * (1 - _u / 24.0) + 1.2 * np.sin(_u / 3.0)
 _river = _in & (np.abs(_v - _rv) < 1.0)
-_bay = _in & (((_u + 1) / 9.0) ** 2 + ((MP_H - 1 - _v) / 6.5) ** 2 < 1)
+_bay = _in & (((_u + 1) / 6.5) ** 2 + ((MP_H - 1 - _v) / 4.5) ** 2 < 1)
 cv.fill(_river | _bay, FLOOR)
 cv.fill(_bay & ~_river & (np.roll(_bay, -1, 0) & ~np.roll(_bay, 1, 0)), SLATE)   # the shore line, darker
 # the highway, crossing the river on a bridge
-cv.line(MP_X0 + 1, MP_Y0 + 6, MP_X1 - 1, MP_Y0 + 14, BEDSPREAD)
+cv.line(MP_X0 + 1, MP_Y0 + 5, MP_X1 - 1, MP_Y0 + 10, BEDSPREAD)
 # the crease across the middle and the folds' edges
-cv.fill(_in & (_v == 12) & _lit, WALL)
-cv.fill(_in & (_v == 12) & _dim, WALL_SHADE)
+cv.fill(_in & (_v == 8) & _lit, WALL)
+cv.fill(_in & (_v == 8) & _dim, WALL_SHADE)
 cv.fill(cv.m_edge(MAP), BLACK)
 MP_SHEET = MAP.copy()
 
@@ -42,7 +42,7 @@ MP_PINS = []
 for _px, _py in ((MP_X0 + 1, MP_Y0 + 1), (MP_X1 - 1, MP_Y0 + 1)):
     cv.dot(_px, _py, SLATE)
     MP_PINS.append((_px, _py))
-for (_lx, _ly), _ink in (((7, 10), RED), ((17, 18), GLOW)):      # red on the lit panel, cyan on the dim one
+for (_lx, _ly), _ink in (((5, 6), RED), ((11, 12), GLOW)):       # red on the lit panel, cyan on the dim one
     _px, _py = MP_X0 + _lx, MP_Y0 + _ly
     cv.dots([(_px - 1, _py - 1), (_px, _py - 1), (_px - 1, _py)], DARK)
     cv.dots([(_px, _py), (_px + 1, _py), (_px, _py + 1)], _ink)

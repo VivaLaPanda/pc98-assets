@@ -10,7 +10,8 @@ TV_A = 0.0
 TV_F = np.array([-np.sin(TV_A), 0., -np.cos(TV_A)])        # out of the screen
 TV_R = np.array([np.cos(TV_A), 0., -np.sin(TV_A)])         # across the face, our left to right
 TV_P0 = np.array([130., FLOOR_Y + 4, 155.])                # bottom centre of the face, on the board
-TV_W, TV_H, TV_D1, TV_D2 = 32., 28., 12., 28.              # the bezel box is 12 deep, the tube's back bulges to 28
+TV_W, TV_H, TV_D1, TV_D2 = 26., 23., 10., 23.              # the bezel box is 10 deep, the tube's back bulges to 23
+# (round 4: 32x28 -> 26x23, ranked below the newspaper and the PC; still well above v1's set on the shelf)
 
 
 def pf(p):
@@ -33,12 +34,12 @@ def tv_quad(u0, v0, u1, v1, w=0.):
 TRASH = cv.m_poly([(365, 239), (369, 236), (382, 236), (387, 239), (387, 289), (382, 291), (369, 291), (365, 289)])
 _keep = ~TRASH                                              # the can stands in front of the set's back corner
 
-# -- the board: plain wood, square to the room, its right edge on the bookshelf's front plane (X 150), deep
-# enough to hold the tube's back
+# -- the board: plain wood, square to the room, 4cm short of the bookshelf's front plane (X 150), deep enough to
+# hold the tube's back
 _y0, _y1 = FLOOR_Y, FLOOR_Y + 4
-TV_BOARD_TOP = cv.m_poly([pf((112, _y1, 147)), pf((150, _y1, 147)), pf((150, _y1, 184)), pf((112, _y1, 184))])
-TV_BOARD_FRONT = cv.m_poly([pf((112, _y1, 147)), pf((150, _y1, 147)), pf((150, _y0, 147)), pf((112, _y0, 147))])
-TV_BOARD_LEFT = cv.m_poly([pf((112, _y1, 147)), pf((112, _y1, 184)), pf((112, _y0, 184)), pf((112, _y0, 147))])
+TV_BOARD_TOP = cv.m_poly([pf((114, _y1, 147)), pf((146, _y1, 147)), pf((146, _y1, 178)), pf((114, _y1, 178))])
+TV_BOARD_FRONT = cv.m_poly([pf((114, _y1, 147)), pf((146, _y1, 147)), pf((146, _y0, 147)), pf((114, _y0, 147))])
+TV_BOARD_LEFT = cv.m_poly([pf((114, _y1, 147)), pf((114, _y1, 178)), pf((114, _y0, 178)), pf((114, _y0, 147))])
 TV_BOARD = (TV_BOARD_TOP | TV_BOARD_FRONT | TV_BOARD_LEFT) & _keep
 cv.fill(TV_BOARD_TOP & _keep, DESK_SHADE)
 cv.fill(TV_BOARD_LEFT & _keep, WOOD)
@@ -135,8 +136,7 @@ cv.persp.edge('tv', tv_pt(0, 0), tv_pt(0, 1), 'v')
 cv.persp.edge('tv', tv_pt(1, 0), tv_pt(1, 1), 'v')
 cv.persp.edge('tv', tv_pt(0, 0), tv_pt(0, 0, TV_D1))
 cv.persp.edge('tv', tv_pt(0, 1), tv_pt(0, 1, TV_D1))
-cv.persp.edge('tv board', pf((112, FLOOR_Y + 4, 147)), pf((150, FLOOR_Y + 4, 147)), 'h')
-cv.persp.edge('tv board', pf((112, FLOOR_Y, 147)), pf((126, FLOOR_Y, 147)), 'h')     # left of the tapes (13)
-cv.persp.edge('tv board', pf((112, FLOOR_Y + 4, 147)), pf((112, FLOOR_Y + 4, 165)))
+cv.persp.edge('tv board', pf((114, FLOOR_Y + 4, 147)), pf((146, FLOOR_Y + 4, 147)), 'h')
+cv.persp.edge('tv board', pf((134, FLOOR_Y, 147)), pf((146, FLOOR_Y, 147)), 'h')     # right of the console (08)
+cv.persp.edge('tv board', pf((114, FLOOR_Y + 4, 147)), pf((114, FLOOR_Y + 4, 165)))
 cv.persp.edge('tv', tv_pt(1, 0), tv_pt(1, 0, TV_D1))                 # the top's right edge, to the VP
-cv.persp.edge('tv', tv_pt(0.0, 0, TV_D1), tv_pt(0.12, 0, TV_D1), 'h')  # the top's back edge, beside the bulge

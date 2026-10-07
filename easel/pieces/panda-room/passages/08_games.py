@@ -2,7 +2,7 @@
 # its pad lying on the floor out toward the room on its cord. Lavender-grey plastic, the room's paper and curtain
 # inks; the pad's four buttons in the scene's accents. The top faces the TV and takes its light, the side toward the
 # window a step lighter than the front (the picture's rule again).
-GM_X0, GM_X1, GM_Z0, GM_Z1, GM_H = 101., 120., 130., 145., 6.
+GM_X0, GM_X1, GM_Z0, GM_Z1, GM_H = 103., 118., 131., 143., 5.     # (round 4: 19x15x6 -> 15x12x5, ranked below the TV)
 _t, _b = FLOOR_Y + GM_H, FLOOR_Y
 
 
@@ -56,7 +56,7 @@ for _a, _c in _flo.items():
     cv.replace(_a, _c, _foot & ~GM_CONSOLE)
 
 # the pad: a dogbone on the floor, the D-pad, select/start, the four buttons in a diamond
-PAD_X, PAD_Y = 340, 333
+PAD_X, PAD_Y = 352, 336                                   # on a shorter cord (round 4)
 PAD_ART = '''
 ..KKKKKKKKKKKKKKKKKK..
 .KPPPPPPPPPPPPPPPPPPK.
@@ -78,8 +78,8 @@ for _a, _c in _flo.items():
 GM_PAD = cv._mask_pts([(PAD_X + x, PAD_Y + y) for y, r in enumerate(_rows) for x, ch in enumerate(r) if ch not in '. '])
 # its cord: out of the top, a loose S across the floor to the first port
 _p = gm(GM_X0 + 3, _t - 2.5, GM_Z0)
-_cord = [(PAD_X + 11, PAD_Y - 1), (PAD_X + 13, PAD_Y - 4), (PAD_X + 19, PAD_Y - 7), (PAD_X + 28, PAD_Y - 7),
-         (PAD_X + 38, PAD_Y - 5), (PAD_X + 47, PAD_Y - 6), (PAD_X + 55, PAD_Y - 9), (round(_p[0]), round(_p[1]) + 2)]
+_cord = [(PAD_X + 11, PAD_Y - 1), (PAD_X + 13, PAD_Y - 4), (PAD_X + 19, PAD_Y - 6), (PAD_X + 28, PAD_Y - 5),
+         (PAD_X + 36, PAD_Y - 7), (PAD_X + 44, PAD_Y - 6), (round(_p[0]), round(_p[1]) + 2)]
 GM_CORD = np.zeros_like(GM_PAD)
 for _a, _c in zip(_cord, _cord[1:]):
     GM_CORD |= cv.m_line(*_a, *_c)

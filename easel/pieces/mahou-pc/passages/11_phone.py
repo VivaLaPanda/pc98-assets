@@ -12,6 +12,8 @@ def bed_inv(x, y):
 
 
 PH_C, PH_DEG, PH_W, PH_L, PH_T = np.array([-128.0, 178.0]), 78, 7.6, 16.0, 0.8   # a 6.5" phone, lying askew
+if globals().get('NO_PHONE'):        # a piece built on this one paints its own phone (panda-room: bigger, 17)
+    PH_C = np.array([-5000.0, 178.0])    # off the canvas: nothing is drawn, the pool lights nothing
 _th = np.radians(PH_DEG)
 PH_A = np.array([np.sin(_th), -np.cos(_th)])        # along the phone, toward its bottom (nearer the viewer)
 PH_B = np.array([np.cos(_th), np.sin(_th)])         # across it, left to right

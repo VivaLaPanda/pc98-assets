@@ -38,7 +38,8 @@ INFO = {'window': (1, 'Twitter'), 'phone': (2, 'Signal / Discord'), 'pc': (3, 'G
         'letter': (8, 'Email'), 'controller': (9, 'Steam'), 'lesswrong': (10, 'LessWrong'),
         'linkedin': (11, 'LinkedIn'), 'kitsu': (12, 'Kitsu'), 'stackoverflow': (13, 'Stack Overflow'),
         'bump': (14, 'Bump'), 'plush': (15, 'none (a knick-knack)'), 'poster': (16, 'none (a knick-knack)')}
-PAD_HIT = {'phone': 5, 'butterfly': 3, 'letter': 3, 'stackoverflow': 2}   # small objects get a padded hit rectangle
+PAD_HIT = {'butterfly': 1, 'stackoverflow': 3}   # still-small objects get a padded hit area (round 4: the phone,
+# with its pool, and the letter outgrew theirs; the butterfly's lace keeps 1px)
 HULL_HIT = {'controller': 2}                          # parts spread apart (console, cord, pad): their padded hull
 
 
@@ -236,25 +237,42 @@ def main():
         ys, xs = np.nonzero(m | rim)
         bx0, by0, bx1, by1 = xs.min(), ys.min(), xs.max() + 1, ys.max() + 1
         x4(rgba(cv, la, m | rim).crop((bx0, by0, bx1, by1))).save(OUT / 'lit' / f'{name}@4x.png')
-        # the hit/outline polygon: the mask closed by 2px so an object's parts make one shape, its largest component
-        closed = shrink(grow(m, 2), 2) | m
+        hs[name] = {'lit': {'x': int(bx0), 'y': int(by0), 'w': int(bx1 - bx0), 'h': int(by1 - by0)}}
+    # polygons and hit areas, once every object's pixels are known. Round 4: each is kept off every other object's
+    # pixels (a 1px margin), so no hit area overlaps another object's: the outline is the mask closed by 2px (an
+    # object's parts make one shape) but never across a neighbour; a tiny object's pad and the console's hull are cut
+    # the same way. (An object sitting on another, the butterfly on the curtain, is a hole in the window's outline:
+    # the page's z-order gives it to the butterfly.)
+    for name in ORDER:
+        m = masks[name]
+        others = np.zeros((H, W), bool)
+        for o in ORDER:
+            if o != name:
+                others |= masks[o]
+        fence = grow(others, 1)
+        closed = (shrink(grow(m, 2), 2) & ~fence) | m
         comp = max(components(closed), key=lambda c: c.sum())
-        poly = simplify(trace(comp))
+        poly = simplify(trace(comp), eps=0.5)
         # anchor: the object's pixel nearest its centroid
         mys, mxs = np.nonzero(m)
         cy, cx = mys.mean(), mxs.mean()
         k = int(np.argmin((mys - cy) ** 2 + (mxs - cx) ** 2))
         rec = {'rank': INFO[name][0], 'account': INFO[name][1], 'area': int(m.sum()),
                'bbox': [int(mxs.min()), int(mys.min()), int(mxs.max()), int(mys.max())],
-               'polygon': poly, 'anchor': [int(mxs[k]), int(mys[k])],
-               'lit': {'x': int(bx0), 'y': int(by0), 'w': int(bx1 - bx0), 'h': int(by1 - by0)}}
+               'polygon': poly, 'anchor': [int(mxs[k]), int(mys[k])], 'lit': hs[name]['lit']}
+        region = None
         if name in PAD_HIT:
-            p = PAD_HIT[name]
-            x0, y0, x1, y1 = rec['bbox']
-            rec['hit'] = [[x0 - p, y0 - p], [x1 + 1 + p, y0 - p], [x1 + 1 + p, y1 + 1 + p], [x0 - p, y1 + 1 + p]]
+            region = grow(m, PAD_HIT[name])
         if name in HULL_HIT:
             gy, gx = np.nonzero(grow(m, HULL_HIT[name]))
-            rec['hit'] = hull(np.stack([np.r_[gx, gx + 1, gx, gx + 1], np.r_[gy, gy, gy + 1, gy + 1]], 1).tolist())
+            hp = hull(np.stack([np.r_[gx, gx + 1, gx, gx + 1], np.r_[gy, gy, gy + 1, gy + 1]], 1).tolist())
+            im = Image.new('L', (W, H), 0)
+            ImageDraw.Draw(im).polygon([tuple(q) for q in hp], fill=1)
+            region = np.array(im, bool)
+        if region is not None:
+            region = (region & ~fence) | m
+            comp = max(components(region), key=lambda c: c.sum())
+            rec['hit'] = simplify(trace(comp), eps=0.5)
         hs[name] = rec
     spec = twinkle(cv, idx, masks['butterfly'] | masks['linkedin'])
     meta = {'scene': 'room.png', 'native_size': [W, H], 'shown_size': [740, 528], 'scale': SCALE,

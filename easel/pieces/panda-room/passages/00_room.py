@@ -3,7 +3,7 @@
 # floor below (the bed's legs reach the floor at ~286 of the old rows, the bolster's end cap at ~285).
 import easel
 
-ROOM, _ = easel.run('mahou-pc', pre={'NO_PAPER': True})   # the newspaper moves to the bed (16)
+ROOM, _ = easel.run('mahou-pc', pre={'NO_PAPER': True, 'NO_PHONE': True})   # both repainted bigger (16, 17)
 M = ROOM.ns                                   # mahou-pc's names: its camera, light, ramps and object masks
 TOP, BOTTOM = 34, 55
 assert TOP + ROOM.h + BOTTOM == cv.h
@@ -59,25 +59,17 @@ def _up(p):
     return (p[0], p[1] + TOP)
 
 
-# mahou-pc's objects, kept: the monitor (a swivel set turned 24 degrees to the room) and the phone (thrown down
-# askew). (Its newspaper is left out: round 3 moves it to the bed, 16.) Each runs to its own VPs, which must sit on the horizon.
+# mahou-pc's objects, kept: the monitor (a swivel set turned 24 degrees to the room). (Its newspaper and phone are
+# left out: round 4 paints them bigger, 16 on the floor and 17 on the bed.) Each runs to its own VPs, which must sit on the horizon.
 _th = M['TH']
 _F = [_up(p) for p in M['FACE']]                        # TL TR BR BL
 cv.persp.edge('pc', _F[0], _F[1], own_vp(np.cos(_th), -np.sin(_th)))
 cv.persp.edge('pc', _F[0], _F[3], 'v')
 cv.persp.edge('pc', _F[1], _F[2], 'v')
-_a = np.radians(M['PH_DEG'])
-_ph = lambda u, v: _up(M['ph'](u, v, M['PH_T']))
-_w, _l = M['PH_W'] / 2, M['PH_L'] / 2
-cv.persp.edge('phone', _ph(-_w, -_l), _ph(-_w, _l), own_vp(np.sin(_a), -np.cos(_a)))
-cv.persp.edge('phone', _ph(_w, -_l), _ph(_w, _l), own_vp(np.sin(_a), -np.cos(_a)))
 # the rest of each one's edges (round 3: every added object gets a full set, not two or three)
 cv.persp.edge('pc', _F[3], _F[2], own_vp(np.cos(_th), -np.sin(_th)))   # the face's bottom, to the same own VP
 _K = [_up(p) for p in M['KB']]                                       # BL BR FR FL: the keyboard, square to the desk
 cv.persp.edge('keyboard', _K[3], _K[2], 'h')
 cv.persp.edge('keyboard', _K[3], _K[0])
-_a = np.radians(M['PH_DEG'])
-cv.persp.edge('phone', _ph(-_w, -_l), _ph(_w, -_l), own_vp(np.cos(_a), np.sin(_a)))     # its two ends
-cv.persp.edge('phone', _ph(-_w, _l), _ph(_w, _l), own_vp(np.cos(_a), np.sin(_a)))
 # the plush sits up straight against the headboard: its body's centre line plumb (head to paws)
 cv.persp.axis('plush', cv.masks['plush'])
