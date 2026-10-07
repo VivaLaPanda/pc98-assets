@@ -3,7 +3,7 @@
 # just before them. The new butterfly rests on the left curtain at eye height, where the sheer glows with the moon
 # behind it: a dark silhouette with translucent wings, blue lit through, Bluesky's shape (upper wings flared to the
 # outer corners, small round lower wings). 19x14, wings open, the edges facing the window catching the moon.
-PRE, _ = easel.run('mahou-pc', upto=11)
+PRE, _ = easel.run('mahou-pc', upto=11, pre={'NO_PAPER': True})
 for _k in ('butterfly', 'tv'):
     _m = cv.masks.pop(_k)
     _yy, _xx = np.nonzero(_m)

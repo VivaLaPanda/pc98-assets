@@ -90,8 +90,9 @@ def passages(d):
     return sorted((d / 'passages').glob('*.py'))
 
 
-def run(name, upto=None):
-    """Replay the passages onto a blank canvas. Returns (canvas, [(passage name, rgb after it)])."""
+def run(name, upto=None, pre=None):
+    """Replay the passages onto a blank canvas. Returns (canvas, [(passage name, rgb after it)]).
+    pre: names to seed the passages' namespace with (a piece built on this one switching something off)."""
     d, cfg = load(name)
     c = cfg['canvas']
     ax, ay = c.get('at', [0, 0])
@@ -99,6 +100,7 @@ def run(name, upto=None):
     ns = {'cv': cv, 'ud': cv.ud, 'P': P, 'T': T, 'Tile': Tile, 'Clip': Clip, 'np': np,
           'rng': np.random.default_rng(c.get('seed', 1)), 'bresenham': bresenham, 'ellipse_points': ellipse_points,
           'quantize': BASE.quantize, 'resolve': BASE.resolve, 'Image': Image}
+    ns.update(pre or {})
     steps = []
     for p in passages(d):
         num = p.stem.split('_', 1)[0]

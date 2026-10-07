@@ -64,6 +64,8 @@ def on_desk(c, deg, x, z):
 NP_C, NP_DEG, NP_HALF = (116, 186), -14, (9, 16)
 NP = [on_desk(NP_C, NP_DEG, sx * NP_HALF[0], sz * NP_HALF[1]) for sx, sz in ((-1, 1), (1, 1), (1, -1), (-1, -1))]
 FOLD = (on_desk(NP_C, NP_DEG, 0, NP_HALF[1]), on_desk(NP_C, NP_DEG, 0, -NP_HALF[1]))
+if globals().get('NO_PAPER'):        # a piece built on this one puts the newspaper elsewhere (panda-room: on the bed)
+    NP, FOLD = [(-50, -50)] * 4, ((-50, -50), (-50, -50))       # off the canvas: nothing is cleared, drawn or lit
 for q, lab in ((KB, 'kbd'), (NP, 'paper')):
     ud.poly(q, '#a6f'); ud.label(q[0][0], q[0][1] - 8, lab, '#a6f')
 

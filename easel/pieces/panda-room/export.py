@@ -29,8 +29,8 @@ OUT = Path(__file__).parent / 'out' / 'site'
 SCALE = 4
 
 # front to back: where two objects overlap, the earlier one owns the pixels
-# (the tapes stand in front of the TV's board; the duck sits on the newspaper in front of the monitor's foot; the map
-# is on the wall above the rail, behind nothing)
+# (the tapes stand in front of the TV's board; the duck sits on the desk in front of the monitor's foot; the newspaper
+# lies on the bed by the tome and the phone, overlapping neither; the map is on the wall above the rail, behind nothing)
 ORDER = ['controller', 'kitsu', 'tv', 'butterfly', 'linkedin', 'letter', 'stackoverflow', 'phone', 'lesswrong', 'plush',
          'pc', 'newspaper', 'bookshelf', 'poster', 'bump', 'window']
 INFO = {'window': (1, 'Twitter'), 'phone': (2, 'Signal / Discord'), 'pc': (3, 'GitHub'), 'newspaper': (4, 'Substack'),
@@ -38,7 +38,7 @@ INFO = {'window': (1, 'Twitter'), 'phone': (2, 'Signal / Discord'), 'pc': (3, 'G
         'letter': (8, 'Email'), 'controller': (9, 'Steam'), 'lesswrong': (10, 'LessWrong'),
         'linkedin': (11, 'LinkedIn'), 'kitsu': (12, 'Kitsu'), 'stackoverflow': (13, 'Stack Overflow'),
         'bump': (14, 'Bump'), 'plush': (15, 'none (a knick-knack)'), 'poster': (16, 'none (a knick-knack)')}
-PAD_HIT = {'phone': 5, 'butterfly': 3, 'letter': 3, 'stackoverflow': 3}   # small objects get a padded hit rectangle
+PAD_HIT = {'phone': 5, 'butterfly': 3, 'letter': 3, 'stackoverflow': 2}   # small objects get a padded hit rectangle
 HULL_HIT = {'controller': 2}                          # parts spread apart (console, cord, pad): their padded hull
 
 
