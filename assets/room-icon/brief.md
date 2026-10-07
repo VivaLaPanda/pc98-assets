@@ -37,3 +37,34 @@ At 72px the icon has to say "visit my room" in a glance, and must not collide wi
 - `out/review/<name>/`: the per-candidate previews.
 
 Installed in the site as `img/icons/room.png` and `img/icons/room_recolor.png`.
+
+## Round 2 (2026-10-06): the user on bed2, "this icon kinda sucks"
+
+Why bed2 failed beside the set: a flat side view among chunky three-quarter objects; the plush a flat black-and-white
+sticker floating at the headboard; tan and rust wood, outside the set's periwinkle/plum/pink. Round 2 (`draw2.py`,
+`out2/`) draws straight in the frame palette, so every shade is chosen: periwinkle bodies, plum shadow and lit-side
+outline, black shadow-side outline, white highlights, mauve half-light, pink and hot pink. The plush's white fur takes a
+**periwinkle** half-light (moonlight, and the set's body colour), which ties a white thing into the set instead of
+leaving a hole.
+
+1. **tuckedin** (recommended): Panda tucked into bed, seen from the foot (the RPG-inn view), periwinkle headboard
+   and posts, mauve pillow so the white face reads, the sheet folded over its chin with two paws on it, a pink quilt
+   with dotted hot-pink quilting falling into shadow on the right. Reads as "bedroom + Panda" at once and matches the
+   set best: three-quarter volume, the computer's pink, nothing outside the palette.
+2. **ajar**: the bedroom door swung inward, a warm peach room with a night window inside, Panda peeking around the
+   door's edge with a paw on it. "Come in" plus Panda; narrower than its neighbours, so a touch lighter in the row.
+3. **nightwindow**: the room's balcony window (navy sky, crescent moon, plum skyline with lit windows, pink curtains
+   tied back) with the plush on the sill, rimmed in moonlit periwinkle. Echoes the page's main feature; the busiest of
+   the four, and its navy is the darkest mass in the sidebar.
+4. **moonpanda**: the plush's head against a crescent moon. The clearest silhouette, but it's a face among objects
+   (reads as an avatar / "about me") and the heaviest white in the row. A pink nightcap was tried and dropped: with a
+   white band and pom-pom it read as a Santa hat.
+
+Phones never show this icon: below the mobile breakpoint the whole sidebar is hidden on every page, so 72 px
+(48 at 1.5x, smooth-scaled) is the only size that matters.
+
+Review: `out2/review/rows_72px.png` (each candidate in the sidebar's row at 72 px), `out2/review/sheet_all.png`
+(1x, 72 px, 6x beside the set and the old bed2), `out2/review/sidebars.png` and `out2/review/sidebar/desktop_*.png`
+(the real sidebar of contact.html at 2x, candidate swapped in by request interception; `sidebar_shots.js`).
+To install one: copy `out2/<name>.png` and `out2/<name>_recolor.png` to the site's `img/icons/room.png` and
+`img/icons/room_recolor.png`.
