@@ -125,13 +125,14 @@ quote database (9,720 quotes), the English Katawa Shoujo scripts, the DDLC story
 round-3 objects (window, phone, PC, newspaper, bookshelf, butterfly, TV, letter repeat) were re-read and kept.
 
 New objects with art v3 (Kitsu: anime tapes by the TV; Stack Overflow: a rubber duck by the keyboard; Bump: a city map
-pinned to the wall). The Kitsu numbers are from the profile (last updated 2021-09-18; 134,017 minutes, ~93 days).
+pinned to the wall). The Kitsu numbers are from the API (newest list entry 2022-07-10, 544 entries; 134,017 minutes, ~93 days). Kitsu is
+more current than the user's MyAnimeList (newest list update 2018-05-17, 466 entries), so the tapes link to Kitsu.
 
 | slot | final line | kind | original (if changed) | work / character | source |
 |---|---|---|---|---|---|
 | kitsu hover | Gaze upon my anime tapes and despair! | adapted (figures → tapes) | Gaze upon my anime figures and despair! | Scarlet Hollow / Kaneeka Forsyth | https://vndb.org (VNDB quote q8144) |
 | kitsu click 1 | Kitsu says I've watched 93 days of anime. | original (plain; the profile's own number) |  | - | https://kitsu.io/users/VivaLaPanda |
-| kitsu click 2 | ...And I stopped logging in 2021. Oops. | original (plain) |  | - | - |
+| kitsu click 2 | ...And I stopped logging in 2022. Oops. | original (plain; last list entry 2022-07-10) |  | - | https://kitsu.io/users/VivaLaPanda |
 | kitsu repeat | Holy moly! Anime is so extreme these days | verbatim |  | Hitotsu Yane no, Tsubasa no Shita de / Hirosawa Hikari | https://vndb.org (VNDB quote q7579) |
 | stackoverflow hover | You think rubber ducks are creepy? | verbatim |  | Katawa Shoujo / Hisao Nakai | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a2-rin.rpy#L3846 |
 | stackoverflow click 1 | I asked the duck for an answer. It was no use. | interpolated (God → the duck: rubber-duck debugging) | I've asked God for an answer. It was no use. | Eiyuu * Senki | https://vndb.org (VNDB quote q1011) |
