@@ -68,3 +68,31 @@ Review: `out2/review/rows_72px.png` (each candidate in the sidebar's row at 72 p
 (the real sidebar of contact.html at 2x, candidate swapped in by request interception; `sidebar_shots.js`).
 To install one: copy `out2/<name>.png` and `out2/<name>_recolor.png` to the site's `img/icons/room.png` and
 `img/icons/room_recolor.png`.
+
+## Round 3 (2026-10-06): no bed
+
+`tuckedin` went in (site db2c97a); the user: "I feel like the bed evokes sleepytime, not: - home - directory -
+bedroom". So the icon has to say Panda's home, a directory (the page is a list of Panda's places online) and Panda's
+own room. `draw3.py`, `out3/`, same palette rules as round 2. Ranked on home + directory + bedroom, then fit with the set:
+
+1. **homefolder2** (recommended): a Windows 98 folder in the set's periwinkle, papers peeking out, a little house on
+   the front with Panda's face in its lit window. Folder = directory, house = home, Panda = whose; and it's one of the
+   desktop-icon family (My Computer, CD, envelope, globe) more than anything else here. Weakest on "bedroom".
+2. **cutaway**: a dollhouse cut of a tiny room: a night window, a glowing CRT on a desk, Panda on a pink rug. It *is*
+   the page (Panda's room), reads as a room rather than sleep, three-quarter like the computer and globe; the busiest
+   of the five, and the CRT is faint at 72 px.
+3. **door**: Panda's bedroom door, nearly closed, warm light round its edge, a pink panda nameplate, star / heart /
+   crescent stickers. The classic "my room" door; fills the cell; flat like the envelope. No "directory".
+4. **house**: a little house at night, a pink roof, a crescent moon, Panda's face in the big lit window. The strongest
+   "home", but a house in the nav risks reading as the home page (the computer), and it's the loudest in the row.
+5. **homefolder**: the same folder with a round pink badge of Panda's face. "Panda's folder", clean, but it says
+   "directory" and "Panda" without "home" or "room"; homefolder2 does the same job better.
+
+Redrawn after the first pass: the house's silhouette in the window was a black blob at 72 px (now Panda's face); the
+cutaway's plush and CRT were lost (now bigger, a thick white cut edge, a glow round the CRT); the folders' back panel
+was grey (now periwinkle with a plum dither); homefolder2's window was too small for anything (now a mini Panda).
+
+Review: `out3/review/sheet_all.png` (1x, 72 px, 6x beside the set, round 2's ajar and the installed tuckedin),
+`out3/review/rows_72px.png`, `out3/review/sidebars.png` and `out3/review/sidebar/desktop_*.png` (contact.html's real
+sidebar at 2x; `sidebar_shots3.js`). Install: copy `out3/<name>.png` and `out3/<name>_recolor.png` to the site's
+`img/icons/room.png` and `img/icons/room_recolor.png`.
