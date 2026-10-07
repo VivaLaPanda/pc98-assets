@@ -26,9 +26,11 @@ cv.replace(BEDSPREAD, WOOD, _sh); cv.replace(DESK, BEDSPREAD, _sh)
 _pages = (TM_FRONT | TM_RIGHT) & ~cv.m_edge(TM_FRONT | TM_RIGHT, 'top,bottom')
 cv.fill(TM_FRONT | TM_RIGHT, SLATE)
 cv.fill(_pages, DESK)
-cv.tile(_pages & TM_RIGHT, '1/2', DESK, DESK_SHADE)
+cv.fill(_pages & TM_RIGHT & ~TM_FRONT, PAPER)          # the end faces the window and the phone: a plane lighter
 for _h in (2.0, 3.6):
     cv.polyline([tm(-_L2 + 0.5, -_W2, _h), tm(_L2, -_W2, _h), tm(_L2, _W2 - 0.5, _h)], DESK_SHADE)
+# (the end was a DESK/DESK_SHADE checker, no lighter than the front: the corner was a ragged diagonal where stripes
+# met checker, 2.3px out of plumb in vp-check; a plane change makes it, as the room's own boxes do)
 # the cover: navy, worn lighter along its edges, a gold panel with the title
 cv.fill(TM_TOP, DARK)
 cv.fill(cv.m_edge(TM_TOP, 'top,left'), SLATE)
@@ -56,3 +58,6 @@ cv.masks['lesswrong'] = TM_BOOK | TM_RIB | cv._mask_pts(TM_TABS)
 cv.persp.edge('tome', tm(-_L2, -_W2, TM_H), tm(_L2, -_W2, TM_H), own_vp(*TM_U))
 cv.persp.edge('tome', tm(-_L2, -_W2), tm(_L2, -_W2), own_vp(*TM_U))
 cv.persp.edge('tome', tm(_L2, -_W2, TM_H), tm(_L2, _W2, TM_H), own_vp(*TM_V))
+cv.persp.edge('tome', tm(-_L2, _W2, TM_H), tm(_L2, _W2, TM_H), own_vp(*TM_U))       # the cover's back edge
+cv.persp.edge('tome', tm(-_L2, -_W2, TM_H), tm(-_L2, _W2, TM_H), own_vp(*TM_V))     # the spine side
+cv.persp.edge('tome', tm(_L2, -_W2, TM_H), tm(_L2, -_W2), 'v')                      # the near corner, plumb

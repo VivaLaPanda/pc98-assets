@@ -49,3 +49,8 @@ cv.fill(cv.m_edge(_sl_l, 'left') & ~cv.m_edge(_sl_l, 'top,bottom'), CURTAIN)    
 cv.fill(cv.m_edge(_body, 'top') & (_xs - 0.5 < BZ_X + 10), CURTAIN)
 cv.fill(cv.m_edge(_sl_r, 'right') & ~cv.m_edge(_sl_r, 'top,bottom'), GLOW)       # the PC's
 cv.masks['linkedin'] = BLAZER | cv.m_rect(BZ_X + 13, BZ_Y + 2, BZ_X + 16, BZ_Y + 5) & cv.m_where(PAPER)
+
+# vp-check: a jacket on a hanger hangs plumb: its sleeves' seams, its hook, and the centre line of its body
+cv.persp.edge('blazer', (BZ_X + 5, BZ_Y + 14), (BZ_X + 5, BZ_Y + 42), 'v')
+cv.persp.edge('blazer', (BZ_X + 21, BZ_Y + 14), (BZ_X + 21, BZ_Y + 42), 'v')
+cv.persp.axis('blazer', BLAZER, rows=(BZ_Y + 8, BZ_Y + 40))

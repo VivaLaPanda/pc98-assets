@@ -113,6 +113,12 @@ have drawn. `easel vp-check` catches that by measuring what is painted, not what
      or plumb line) over its own length. **This is the gate: off <= 1px at 1x** (the room's controls run 0-0.9px).
    - `unseen`: the declared edge isn't painted there (hidden, or the declaration is wrong).
 
+   - `lim`: the miss a perfectly rasterised edge of that length can still have (half a pixel of slope error at each
+     end, carried out to the VP). An edge is flagged `aim` when its miss exceeds max(3px, 1.25 lim): look at its
+     pixels against the exact ray before believing it (a black gap or a tiled face beside a short edge pulls the fit).
+   - Soft things with no straight edges (a plush, a jacket on a hanger) get `cv.persp.axis(obj, mask, rows=)`: the
+     centre line of the silhouette, row by row, must stand plumb (off = half its drift over its height).
+
    It exits non-zero on any FAIL, writes `out/vp-check[-label].png` and `.txt`. The sheet shows the scene dimmed,
    the horizon and VPs, each true ray (green), each object's painted edge extended (magenta; controls cyan; failures
    red), labelled with `off`. Use `--box` for a zoomed detail.

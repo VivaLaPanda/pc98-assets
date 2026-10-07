@@ -151,6 +151,13 @@ class Persp:
         for p0, p1 in pts:
             self.edge(obj, p0, p1, to, control)
 
+    def axis(self, obj, mask, rows=None):
+        """A soft thing that stands or hangs upright (a plush, a jacket): it has no straight edges, so the check
+        fits the centre line of its silhouette (each row's outer extent) and measures its lean from plumb.
+        rows=(y0, y1) limits it to the rows that are the body (not a trailing cord or a paw)."""
+        self.edges.append(dict(obj=obj, mask=np.asarray(mask, bool).copy(), rows=rows, to='axis', control=False,
+                               p0=(0.0, 0.0), p1=(0.0, 0.0)))
+
 
 # --------------------------------------------------------------------------------- geometry
 

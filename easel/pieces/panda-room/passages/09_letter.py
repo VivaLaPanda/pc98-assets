@@ -29,3 +29,4 @@ cv.masks['letter'] = LETTER
 cv.persp.edge('letter', (LT_X + 1, LT_Y), (LT_X + 17, LT_Y), 'h')
 cv.persp.edge('letter', (LT_X, LT_Y + 1), (LT_X, LT_Y + 10), 'v')
 cv.persp.edge('letter', (LT_X + 18, LT_Y + 1), (LT_X + 18, LT_Y + 10), 'v')
+cv.persp.edge('letter', (LT_X + 1, LT_Y + 11), (LT_X + 17, LT_Y + 11), 'h')

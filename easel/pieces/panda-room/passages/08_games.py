@@ -95,3 +95,7 @@ cv.persp.edge('console', gm(GM_X0, _t, GM_Z0), gm(GM_X0, _t, GM_Z1))
 cv.persp.edge('console', gm(GM_X0, _b, GM_Z0), gm(GM_X0, _b, GM_Z1))
 cv.persp.edge('console', gm(GM_X1, _t, GM_Z0), gm(GM_X1, _b, GM_Z0), 'v')
 cv.persp.edge('pad', (PAD_X + 2, PAD_Y), (PAD_X + 19, PAD_Y), 'h')
+cv.persp.edge('console', gm(GM_X1, _t, GM_Z0), gm(GM_X1, _t, GM_Z1))                 # the top's right edge
+cv.persp.edge('cartridge', gm(_ct0, _t + _ch, _cz), gm(_ct1, _t + _ch, _cz), 'h')
+cv.persp.edge('cartridge', gm(_ct0, _t + _ch, _cz), gm(_ct0, _t + 1, _cz), 'v')
+cv.persp.edge('cartridge', gm(_ct1, _t + _ch, _cz), gm(_ct1, _t + 1, _cz), 'v')

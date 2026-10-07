@@ -75,3 +75,15 @@ _ph = lambda u, v: _up(M['ph'](u, v, M['PH_T']))
 _w, _l = M['PH_W'] / 2, M['PH_L'] / 2
 cv.persp.edge('phone', _ph(-_w, -_l), _ph(-_w, _l), own_vp(np.sin(_a), -np.cos(_a)))
 cv.persp.edge('phone', _ph(_w, -_l), _ph(_w, _l), own_vp(np.sin(_a), -np.cos(_a)))
+# the rest of each one's edges (round 3: every added object gets a full set, not two or three)
+cv.persp.edge('pc', _F[3], _F[2], own_vp(np.cos(_th), -np.sin(_th)))   # the face's bottom, to the same own VP
+_K = [_up(p) for p in M['KB']]                                       # BL BR FR FL: the keyboard, square to the desk
+cv.persp.edge('keyboard', _K[3], _K[2], 'h')
+cv.persp.edge('keyboard', _K[3], _K[0])
+cv.persp.edge('newspaper', _N[3], (_N[3][0] + 0.75 * (_N[2][0] - _N[3][0]), _N[3][1] + 0.75 * (_N[2][1] - _N[3][1])),
+              own_vp(np.cos(_a := np.radians(M['NP_DEG'])), np.sin(_a)))  # the near edge, up to the keyboard
+_a = np.radians(M['PH_DEG'])
+cv.persp.edge('phone', _ph(-_w, -_l), _ph(_w, -_l), own_vp(np.cos(_a), np.sin(_a)))     # its two ends
+cv.persp.edge('phone', _ph(-_w, _l), _ph(_w, _l), own_vp(np.cos(_a), np.sin(_a)))
+# the plush sits up straight against the headboard: its body's centre line plumb (head to paws)
+cv.persp.axis('plush', cv.masks['plush'])

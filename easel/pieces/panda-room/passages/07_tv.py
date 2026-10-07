@@ -138,3 +138,5 @@ cv.persp.edge('tv', tv_pt(0, 1), tv_pt(0, 1, TV_D1))
 cv.persp.edge('tv board', pf((112, FLOOR_Y + 4, 147)), pf((150, FLOOR_Y + 4, 147)), 'h')
 cv.persp.edge('tv board', pf((112, FLOOR_Y, 147)), pf((150, FLOOR_Y, 147)), 'h')
 cv.persp.edge('tv board', pf((112, FLOOR_Y + 4, 147)), pf((112, FLOOR_Y + 4, 165)))
+cv.persp.edge('tv', tv_pt(1, 0), tv_pt(1, 0, TV_D1))                 # the top's right edge, to the VP
+cv.persp.edge('tv', tv_pt(0.0, 0, TV_D1), tv_pt(0.12, 0, TV_D1), 'h')  # the top's back edge, beside the bulge

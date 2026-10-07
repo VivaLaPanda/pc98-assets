@@ -103,11 +103,37 @@ def _fit(pts, p0, p1):
     return c, u, float(t.min()), float(t.max()), len(Q)
 
 
+def _axis(e, tol):
+    """A soft upright thing's centre line: each row's outer extent, its midpoint, a least-squares line through them.
+    off = how far the line leans from plumb at its ends (half the drift over its height)."""
+    m = e['mask']
+    ys = np.nonzero(m.any(1))[0]
+    if e.get('rows'):
+        ys = ys[(ys >= e['rows'][0]) & (ys <= e['rows'][1])]
+    r = {k: v for k, v in e.items() if k != 'mask'}
+    if len(ys) < 4:
+        r.update(status='unseen', cover=0.0, lines=0)
+        return r
+    cx = np.array([(np.nonzero(m[y])[0].min() + np.nonzero(m[y])[0].max()) / 2 for y in ys])
+    b, a = np.polyfit(ys, cx, 1)
+    e0, e1 = np.array([a + b * ys.min(), ys.min()]), np.array([a + b * ys.max(), ys.max()])
+    mid = (e0 + e1) / 2
+    u = (e1 - e0) / np.hypot(*(e1 - e0))
+    drift = float(abs(e1[0] - e0[0]))
+    r.update(kind='axis', c=mid, u=u, e0=e0, e1=e1, length=float(ys.max() - ys.min()), cover=1.0, lines=len(ys),
+             miss=drift, off=drift / 2, lim=1.0, ideal=(mid, np.array([0.0, 1.0])), p0=tuple(e0), p1=tuple(e1))
+    r['status'] = 'ok' if r['off'] <= tol else 'FAIL'
+    return r
+
+
 def measure(cv, tol=1.0):
     """Measure every declared edge on the finished picture. Returns a list of result dicts."""
     ps = cv.persp
     out = []
     for e in ps.edges:
+        if e['to'] == 'axis':
+            out.append(_axis(e, tol))
+            continue
         pts, lines = _transitions(cv.idx, e['p0'], e['p1'])
         fit = _fit(pts, e['p0'], e['p1'])
         r = dict(e)
@@ -123,11 +149,13 @@ def measure(cv, tol=1.0):
         to = e['to']
         if to == 'h':
             r['kind'] = 'level'
+            r['lim'] = 1.0
             r['miss'] = float(abs(e1[1] - e0[1]))
             r['off'] = float(max(abs(e0[1] - m[1]), abs(e1[1] - m[1])))
             r['ideal'] = (m, np.array([1.0, 0.0]))
         elif to == 'v':
             r['kind'] = 'plumb'
+            r['lim'] = 1.0
             r['miss'] = float(abs(e1[0] - e0[0]))
             r['off'] = float(max(abs(e0[0] - m[0]), abs(e1[0] - m[0])))
             r['ideal'] = (m, np.array([0.0, 1.0]))
@@ -138,6 +166,9 @@ def measure(cv, tol=1.0):
             if not isinstance(to, str) and ps.horizon is not None:
                 r['vp_off_horizon'] = float(abs(vp[1] - ps.horizon))
             r['miss'] = float(_dist(vp[None], c, u)[0])
+            # the miss a perfectly rasterised edge of this length can still have: half a pixel of slope error at
+            # each end, carried out to the VP
+            r['lim'] = float(np.hypot(*(m - vp)) / max(r['length'], 1.0))
             g = m - vp
             gu = g / (np.hypot(*g) or 1)
             r['off'] = float(max(_dist(e0[None], vp, gu)[0], _dist(e1[None], vp, gu)[0]))
@@ -155,7 +186,7 @@ def measure(cv, tol=1.0):
 def report(results, tol):
     lines = [f'vp-check: tolerance {tol:.1f}px (the painted edge may stray at most this far from its true line, '
              f'measured over its own length at 1x)', '']
-    lines.append(f'{"object":<13}{"edge":<26}{"to":<8}{"len":>5}{"cover":>7}{"miss":>8}{"off":>7}  status')
+    lines.append(f'{"object":<13}{"edge":<26}{"to":<8}{"len":>5}{"cover":>7}{"miss":>8}{"lim":>7}{"off":>7}  status')
     groups = {}
     for r in results:
         groups.setdefault((not r['control'], r['obj']), []).append(r)
@@ -165,12 +196,21 @@ def report(results, tol):
             to = r['to'] if isinstance(r['to'], str) else 'own'
             if r['status'] == 'unseen' and 'off' not in r:
                 lines.append(f'{obj + ("*" if r["control"] else ""):<13}{seg:<26}{to:<8}{"":>5}{r["cover"]:>7.2f}'
-                             f'{"":>8}{"":>7}  unseen')
+                             f'{"":>8}{"":>7}{"":>7}  unseen')
                 continue
             extra = f'  (its VP is {r["vp_off_horizon"]:.1f}px off the horizon)' if 'vp_off_horizon' in r else ''
+            aim = ''
+            if not r['control'] and r['status'] == 'ok' and r['miss'] > max(3.0, r.get('lim', 0) * 1.25):
+                aim = '  aim: misses by more than its pixels explain'
+                r['aim'] = True
             lines.append(f'{obj + ("*" if r["control"] else ""):<13}{seg:<26}{to:<8}{r["length"]:>5.0f}'
-                         f'{r["cover"]:>7.2f}{r["miss"]:>8.1f}{r["off"]:>7.2f}  {r["status"]}{extra}')
+                         f'{r["cover"]:>7.2f}{r["miss"]:>8.1f}{r.get("lim", 0):>7.1f}{r["off"]:>7.2f}  {r["status"]}'
+                         f'{extra}{aim}')
     n = {s: sum(r['status'] == s for r in results) for s in ('ok', 'FAIL', 'unseen')}
+    n_aim = sum(bool(r.get('aim')) for r in results)
+    lines += ['', 'miss: how far the edge, extended, passes its VP (level/plumb: drift over its length). lim: the miss '
+              'a perfectly rasterised edge of that length can still have (half a pixel of slope at each end). '
+              f'aim: miss over max(3, 1.25 lim): {n_aim} edge(s).']
     ctl = [r for r in results if r['control'] and 'off' in r and r['status'] != 'unseen']
     lines += ['', f'* = control (the base picture\'s own edges). {n["ok"]} ok, {n["FAIL"]} FAIL, {n["unseen"]} unseen.']
     if ctl:
@@ -213,7 +253,7 @@ def overlay(cv, results, z=3, box=None, title='', font=None):
         col = BAD_COL if r['status'] == 'FAIL' else (CTL_COL if r['control'] else OBJ_COL)
         e0, e1 = r['e0'], r['e1']
         a, g = r['ideal']
-        if r['kind'] in ('level', 'plumb'):
+        if r['kind'] in ('level', 'plumb', 'axis'):
             ext = 18
             d.line([S(e0 - r['u'] * ext), S(e1 + r['u'] * ext)], fill=col, width=1)
             d.line([S(a - g * (r['length'] / 2 + ext)), S(a + g * (r['length'] / 2 + ext))], fill=VP_COL, width=1)
