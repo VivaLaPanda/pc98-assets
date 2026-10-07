@@ -156,3 +156,11 @@ rules; its lines live in vivalapanda.moe/js/contact.js.
 | contact discord | Copied! You can call me vivalapanda. | interpolated (as the room's phone line) | You can call me Rin. | Katawa Shoujo / Rin Tezuka | https://github.com/gcammisa/KatawaShoujo-RenPy8/blob/4d7852e/game/script-a1-wednesday.rpy#L2836 |
 | contact discord (copy failed) | Huh? It didn't copy... it's vivalapanda! | original (plain, functional; same as the room) |  | - | - |
 | contact letter | Write to me@panda.moe, okay? I'll write back. | original (the room's letter repeat line, with the address) |  | - | - |
+
+**The bookshelf opens (2026-10-07).** The reading list exists now (/reading/, from Goodreads), so the bookshelf's two
+"not ready yet" lines are replaced; its choices are "→ Browse my reading list" and "→ Visit Goodreads".
+
+| slot | final line | kind | original (if changed) | work / character | source |
+|---|---|---|---|---|---|
+| bookshelf click 1 | You could say I really enjoy reading... | verbatim (replaces "My reading list isn't ready yet. Soon!") |  | Doki Doki Literature Club! / Yuri | https://github.com/Monika-After-Story/DDLCModTemplate/tree/master/original_story_scripts |
+| bookshelf repeat | Coffee can be nice with books too, you know? | verbatim (replaces "Still not ready! Reading takes time, okay?") |  | Doki Doki Literature Club! / Monika | https://github.com/Monika-After-Story/DDLCModTemplate/tree/master/original_story_scripts |
