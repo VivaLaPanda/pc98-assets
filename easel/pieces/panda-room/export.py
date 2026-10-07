@@ -7,7 +7,8 @@ Writes easel/pieces/panda-room/out/site/ (gitignored: the room is third-party ba
   lit/<obj>@4x.png    each object's hover state, cropped to its lit rect: one step up its own ramp inside (line art
                       stays), a 1px rim of the glow outside it (never over an object in front of it)
   hotspots.json       per object: rank, account, polygon (outer contour, simplified), anchor, lit rect, padded hit
-                      area for the tiny ones; all in native pixels
+                      area for the tiny ones; all in native pixels (out/hotspots-740x528.json: the polygons at the
+                      page's 740x528, beside the site folder, not in it)
   twinkle@4x.png/.json  the city's lights as an 8-frame strip, palette-cycling style: only the lights that change
                       are opaque
   review/lit_states.png  every object at rest and lit, 3x
@@ -28,13 +29,16 @@ OUT = Path(__file__).parent / 'out' / 'site'
 SCALE = 4
 
 # front to back: where two objects overlap, the earlier one owns the pixels
-ORDER = ['controller', 'tv', 'butterfly', 'linkedin', 'letter', 'phone', 'lesswrong', 'plush', 'pc', 'newspaper',
-         'bookshelf', 'poster', 'window']
+# (the tapes stand in front of the TV's board; the duck sits on the newspaper in front of the monitor's foot; the map
+# is on the wall above the rail, behind nothing)
+ORDER = ['controller', 'kitsu', 'tv', 'butterfly', 'linkedin', 'letter', 'stackoverflow', 'phone', 'lesswrong', 'plush',
+         'pc', 'newspaper', 'bookshelf', 'poster', 'bump', 'window']
 INFO = {'window': (1, 'Twitter'), 'phone': (2, 'Signal / Discord'), 'pc': (3, 'GitHub'), 'newspaper': (4, 'Substack'),
         'bookshelf': (5, 'Reading list'), 'butterfly': (6, 'Bluesky'), 'tv': (7, 'Letterboxd'),
-        'letter': (8, 'Email'), 'controller': (9, 'Steam'), 'plush': (10, 'none (a knick-knack)'),
-        'poster': (11, 'none (a knick-knack)'), 'lesswrong': (12, 'LessWrong'), 'linkedin': (13, 'LinkedIn')}
-PAD_HIT = {'phone': 5, 'butterfly': 3, 'letter': 3}   # small objects get a padded hit rectangle
+        'letter': (8, 'Email'), 'controller': (9, 'Steam'), 'lesswrong': (10, 'LessWrong'),
+        'linkedin': (11, 'LinkedIn'), 'kitsu': (12, 'Kitsu'), 'stackoverflow': (13, 'Stack Overflow'),
+        'bump': (14, 'Bump'), 'plush': (15, 'none (a knick-knack)'), 'poster': (16, 'none (a knick-knack)')}
+PAD_HIT = {'phone': 5, 'butterfly': 3, 'letter': 3, 'stackoverflow': 3}   # small objects get a padded hit rectangle
 HULL_HIT = {'controller': 2}                          # parts spread apart (console, cord, pad): their padded hull
 
 
@@ -257,6 +261,12 @@ def main():
             'z_order_front_to_back': ORDER, 'objects': hs, 'twinkle': spec,
             'note': 'native pixel-corner coordinates; lit sprites are cropped @4x to their lit rect'}
     (OUT / 'hotspots.json').write_text(json.dumps(meta, indent=1))
+    sx, sy = 740 / W, 528 / H                       # the page's scene window: the same polygons at its own scale
+    shown = {k: {'rank': v['rank'], 'account': v['account'],
+                 'polygon': [[round(x * sx, 1), round(y * sy, 1)] for x, y in v['polygon']],
+                 **({'hit': [[round(x * sx, 1), round(y * sy, 1)] for x, y in v['hit']]} if 'hit' in v else {})}
+             for k, v in hs.items()}
+    (OUT.parent / 'hotspots-740x528.json').write_text(json.dumps({'shown_size': [740, 528], 'objects': shown}, indent=1))
 
     # review: every object at rest and lit, 3x
     scene = Image.open(OUT / 'room.png').convert('RGBA')
