@@ -30,3 +30,8 @@ easel/pieces/panda-room/out/
 
 # full-page previews include third-party scene art; keep only the sidebar crops
 assets/room-icon/out/review/*/context*.png
+
+# rodney-only environment
+.envrc-rodney
+# the living room renders contain the third-party room
+easel/pieces/living-room/out/

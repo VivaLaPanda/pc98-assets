@@ -1,0 +1,27 @@
+# living-room: the living room of vivalapanda.moe's Home (/living-room.html), a live copy of Panda's real house. Built
+# on a real PC-98 living room (Fermion: Mirai kara no Houmonsha, Silky's 1995, via pc98backgrounds; never committed),
+# resampled to the bedroom's pixel density and set in its 740:528 window, re-inked into the bedroom's materials so the
+# two read as one flat: the bedroom door on the left wall, the balcony's sliding doors on the right (outside), the TV,
+# the couch, the kotatsu. out/ is gitignored: it contains the third-party room.
+[canvas]
+w = 500
+h = 387
+at = [0, 0]
+seed = 9
+
+[look]
+zoom = 2
+detail_zoom = 3
+focus = [0, 0, 500, 357]
+measure = [100, 80, 360, 260]
+regions = { door = [0, 60, 80, 270], balcony = [370, 30, 500, 300], tv = [280, 120, 380, 240] }
+
+[[refs]]
+path = "explore/places/mahou_bedroom.png"
+box = [0, 0, 160, 120]
+label = "the bedroom's materials (day)"
+
+[site]
+page = "living-room.html"
+path = "img/living-room/noon@4x.png"
+scale = 4
