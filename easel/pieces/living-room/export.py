@@ -152,6 +152,36 @@ def view(ns, phase, pal_idx_rgb, T):
     return out
 
 
+TV_SRC = (64, 40)                                   # the pictures' own size (16:10, near the glass's pixel count)
+
+
+def homography(src, dst):
+    """The projective map taking the 4 points src to dst (3x3)."""
+    A, b = [], []
+    for (x, y), (u, v) in zip(src, dst):
+        A.append([x, y, 1, 0, 0, 0, -u * x, -u * y])
+        A.append([0, 0, 0, x, y, 1, -v * x, -v * y])
+        b += [u, v]
+    h = np.linalg.solve(np.array(A, float), np.array(b, float))
+    return np.append(h, 1).reshape(3, 3)
+
+
+def onto_quad(pic, quad, mask):
+    """`pic` (h, w, 3) seen on a turned screen: each pixel of the mask's box takes the picture's pixel under its
+    centre, through the projective map from the picture's corners to `quad` (TL TR BR BL); RGBA, clear off the glass."""
+    ph, pw = pic.shape[:2]
+    Hinv = homography(quad, [(0, 0), (pw, 0), (pw, ph), (0, ph)])
+    h, w = mask.shape
+    yy, xx = np.mgrid[0:h, 0:w] + 0.5
+    q = Hinv @ np.stack([xx.ravel(), yy.ravel(), np.ones(xx.size)])
+    sx = np.clip(np.floor(q[0] / q[2]).astype(int), 0, pw - 1).reshape(h, w)
+    sy = np.clip(np.floor(q[1] / q[2]).astype(int), 0, ph - 1).reshape(h, w)
+    out = np.zeros((h, w, 4), np.uint8)
+    out[..., :3] = pic[sy, sx]
+    out[..., 3] = np.where(mask, 255, 0)
+    return out
+
+
 def tv_art(screen_w, screen_h):
     """The TV's pictures (emissive: they don't take the room's light). Idle: the Chromecast's ambient photo, a lake
     under mountains. Playing: a sea at sunset, a sailboat drifting, the waves catching the light (6 frames)."""
@@ -286,10 +316,13 @@ def main():
     sm = crop(cv.masks['screen'])
     ys, xs = np.nonzero(sm)
     scr = {'x': int(xs.min()), 'y': int(ys.min()), 'w': int(xs.max() - xs.min() + 1), 'h': int(ys.max() - ys.min() + 1)}
-    backdrop, frames = tv_art(scr['w'], scr['h'])
-    R.x4(Image.fromarray(backdrop)).save(OUT / 'tv-backdrop@4x.png')
-    strip = np.concatenate(frames, 1)
-    R.x4(Image.fromarray(strip)).save(OUT / 'tv-play@4x.png')
+    # the pictures (a 16:10 set) projected onto the glass as drawn, in its bounding box, transparent outside the glass
+    quad = [(x - scr['x'], y - T - scr['y']) for x, y in ns['TV_QUAD']]
+    on_glass = sm[scr['y']:scr['y'] + scr['h'], scr['x']:scr['x'] + scr['w']]
+    backdrop, frames = tv_art(TV_SRC[0], TV_SRC[1])
+    R.x4(Image.fromarray(onto_quad(backdrop, quad, on_glass), 'RGBA')).save(OUT / 'tv-backdrop@4x.png')
+    strip = np.concatenate([onto_quad(f, quad, on_glass) for f in frames], 1)
+    R.x4(Image.fromarray(strip, 'RGBA')).save(OUT / 'tv-play@4x.png')
     rows = NOTE.strip('\n').splitlines()
     note = np.zeros((len(rows), max(len(r) for r in rows), 4), np.uint8)
     for j, r in enumerate(rows):

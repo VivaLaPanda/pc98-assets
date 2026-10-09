@@ -218,8 +218,12 @@ outline(TH, SLATE)
 _th2.__exit__(None, None, None)
 THINGS['thermostat'] = TH
 
-# ---- the TV's screen, off: dark glass, a soft band of the room's reflection
-SCREEN_M = cv.m_rect(297, 165, 356, 202)
+# ---- the TV's screen, off: dark glass, a soft band of the room's reflection. The glass as the set draws it (traced
+# from its inks): x 298-354 from row 166, its foot falling from y 198 to 202 across it. The set is turned ~22deg to
+# the left: its face's level lines run to (-160, 165), on the room's horizon (its top, at eye level, stays flat).
+TV_QUAD = [(298, 166), (355, 166), (355, 202), (298, 198)]       # the glass's corners (pixel edges): TL TR BR BL
+_tv_foot = lambda x: 198 + (np.asarray(x, float) - 298) * (202 - 198) / (355 - 298)
+SCREEN_M = (XX >= 298) & (XX <= 354) & (YY >= 166) & (YY + 0.5 < _tv_foot(XX + 0.5))
 cv.fill(SCREEN_M, DARK)
 _refl = SCREEN_M & (np.abs((XX - 297) - (YY - 165) * 1.4 - 18) < 6)
 cv.tile(_refl, '1/4', DARK, SLATE)
