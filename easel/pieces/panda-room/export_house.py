@@ -41,7 +41,7 @@ DAY = dict(paper='#fff', desk='#fca', curtain='#cde', screen='#cff', glow='#bcd'
 LIGHTS = {'Bedroom Lamp A': 'stand', 'Bedroom Lamp B': 'stand'}
 LAMP_BY_PHASE = {'noon': 0.25, 'morning': 0.35, 'afternoon': 0.35, 'evening': 0.65, 'sunset': 0.75, 'dusk': 0.9,
                  'dawn': 0.9, 'night': 1.0}
-KNICK = ['stand_lamp']
+KNICK = ['stand_lamp', 'desk_lamp']
 
 
 def grey_png(a, path):
@@ -144,6 +144,10 @@ def main():
     E = fields.irradiance(g, lamp)
     grey_png(fields.to_field(E, np.percentile(E, 99.6)), OUT / 'light-stand.png')
     grey_png(np.where(cv.masks['shade_stand'], 255, 0), OUT / 'mask-shade-stand.png')
+    desk = fields.Lamp((160, -6, 218), 'down', 70, 1.0)            # the arm lamp's head, turned down to the desk
+    E = fields.irradiance(g, desk)
+    grey_png(fields.to_field(E, np.percentile(E, 99.7)), OUT / 'light-desk.png')
+    grey_png(np.where(cv.masks['shade_desk'], 255, 0), OUT / 'mask-shade-desk.png')
 
     hot = {}
     taken = np.zeros(cv.idx.shape, bool)
@@ -169,7 +173,9 @@ def main():
         'phases': pals, 'albedo': day,
         'outside': {'mask': 'outside.png', 'layers': layers},
         'lights': {'stand': {'field': 'light-stand.png', 'shade': 'mask-shade-stand.png', 'gain': 0.9,
-                             'phaseGain': LAMP_BY_PHASE}},
+                             'phaseGain': LAMP_BY_PHASE},
+                   'desk': {'field': 'light-desk.png', 'shade': 'mask-shade-desk.png', 'gain': 1.0,
+                            'phaseGain': LAMP_BY_PHASE}},
         'light_names': LIGHTS,
         'twinkle_phases': ['night', 'dusk'],
         'hotspots': hot, 'ramp': {str(k): int(v) for k, v in LIT.items()}, 'rim': names['glow'],
