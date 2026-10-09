@@ -308,7 +308,12 @@ def main():
     # hotspots: owned masks front to back, outlines, anchors, lit rects
     objs = {
         'door_bedroom': ns['OBJ']['left_door'],
-        'door_outside': ((ns['XX'] >= 397) & (ns['YY'] > ns['VAL_Y'](ns['XX'])) & (ns['YY'] < ns['TRACK_Y'](ns['XX']))),
+        # the sliding doors: their glass and frames, but not what stands in front (the sofa, the arc lamp, the side
+        # table and its things): pointing at the sofa isn't pointing at the door
+        'door_outside': ((ns['XX'] >= 397) & (ns['YY'] > ns['VAL_Y'](ns['XX'])) & (ns['YY'] < ns['TRACK_Y'](ns['XX']))
+                         & ~cv.masks['couch'] & ~cv.masks['kotatsu'] & ~cv.masks['lamp_dining']
+                         & ~cv.masks['lamp_window'] & ~cv.masks['speaker_r']
+                         & ~cv.masks['blind_living'] & ~cv.masks['blind_dining']),
         'lamp_sun': cv.masks['lamp_sun'], 'lamp_dining': cv.masks['lamp_dining'],
         'lamp_corner': cv.masks['lamp_corner'], 'lamp_window': cv.masks['lamp_window'],
         'speaker_l': cv.masks['speaker_l'], 'speaker_r': cv.masks['speaker_r'],
