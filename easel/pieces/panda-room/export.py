@@ -38,9 +38,11 @@ INFO = {'window': (1, 'Twitter'), 'phone': (2, 'Signal / Discord'), 'pc': (3, 'G
         'letter': (8, 'Email'), 'controller': (9, 'Steam'), 'lesswrong': (10, 'LessWrong'),
         'linkedin': (11, 'LinkedIn'), 'kitsu': (12, 'Kitsu'), 'stackoverflow': (13, 'Stack Overflow'),
         'bump': (14, 'Bump'), 'plush': (15, 'none (a knick-knack)'), 'poster': (16, 'none (a knick-knack)')}
-PAD_HIT = {'butterfly': 1, 'stackoverflow': 3}   # still-small objects get a padded hit area (round 4: the phone,
-# with its pool, and the letter outgrew theirs; the butterfly's lace keeps 1px)
+PAD_HIT = {'butterfly': 3, 'stackoverflow': 3}   # small objects get a padded hit area (round 4: the phone, with its
+# pool, and the letter outgrew theirs; round 5: the butterfly is the duck's size again)
 HULL_HIT = {'controller': 2}                          # parts spread apart (console, cord, pad): their padded hull
+SITS_ON = {'butterfly': 'window'}   # resting on another object: its pad may reach over that one (the page's z-order
+# gives the overlap to the front one)
 
 
 def grow(m, n=1):
@@ -247,7 +249,7 @@ def main():
         m = masks[name]
         others = np.zeros((H, W), bool)
         for o in ORDER:
-            if o != name:
+            if o != name and SITS_ON.get(name) != o:
                 others |= masks[o]
         fence = grow(others, 1)
         closed = (shrink(grow(m, 2), 2) & ~fence) | m
