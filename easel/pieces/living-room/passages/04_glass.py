@@ -40,6 +40,28 @@ cv.fill(VALANCE & (YY <= VAL_Y(XX) - 21) & (_p == 0), DESK)
 cv.fill(VALANCE & (YY > VAL_Y(XX) - 1), FLOOR)                 # its hem line
 cv.fill(VALANCE & (YY <= VAL_Y(XX) - 25), WOOD)                 # the rod's box above it
 
+# the roller blinds (Panda's Living Room Blinds over the two near panes, Dining Room Blinds over the far one), rolled
+# up: a cream tube under the valance across each, its underside a step darker, end caps, a pull cord. The site lowers
+# each one's cloth from the tube to the real position.
+BLIND_SPANS = {'blind_living': (399, 471), 'blind_dining': (479, 499)}
+BLIND_TUBE = {}
+for _k, (_x0, _x1) in BLIND_SPANS.items():
+    _tube = (XX >= _x0 - 1) & (XX <= _x1 + 1) & (YY > VAL_Y(XX)) & (YY <= VAL_Y(XX) + 6)
+    _ty = YY - VAL_Y(XX)
+    cv.fill(_tube, DESK)
+    cv.fill(_tube & (_ty <= 1.5), PAPER)                                  # the roll's lit top
+    cv.tile(_tube & (_ty > 3.5) & (_ty <= 5), '1/2', DESK, DESK_SHADE)
+    cv.fill(_tube & (_ty > 5), WOOD)                                       # the bar along its foot
+    cv.fill(_tube & ((XX == _x0 - 1) | (XX == _x1 + 1)), WOOD)          # end caps
+    _cx = _x1 - 3
+    _cord = (XX == _cx) & (YY > VAL_Y(_cx) + 6) & (YY <= VAL_Y(_cx) + 18)
+    cv.fill(_cord, SLATE)
+    cv.fill((np.abs(XX - _cx) <= 1) & (np.abs(YY - (VAL_Y(_cx) + 19)) < 1), WOOD)   # the cord's pull
+    BLIND_TUBE[_k] = _tube | _cord
+GLASS &= ~(BLIND_TUBE['blind_living'] | BLIND_TUBE['blind_dining'])
+for _k, _m in BLIND_TUBE.items():
+    cv.masks[_k] = _m
+
 # the glass: the outside's own layer at export; a pale placeholder sky here
 cv.fill(GLASS, SCREEN)
 cv.masks['outside'] = GLASS

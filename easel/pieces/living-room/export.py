@@ -49,8 +49,9 @@ LAMP_BY_PHASE = {'noon': 0.25, 'morning': 0.35, 'afternoon': 0.35, 'evening': 0.
 BLINDS = {'Living Room Blinds': (399, 471), 'Dining Room Blinds': (479, 499)}
 # hotspot objects, front to back (where they overlap, the earlier one owns the pixels)
 ORDER = ['lamp_dining', 'lamp_window', 'speaker_r', 'kotatsu', 'lamp_sun', 'lamp_corner', 'speaker_l', 'thermostat',
-         'tv', 'door_bedroom', 'door_outside']
-PAD = {'thermostat': 3, 'speaker_l': 2, 'speaker_r': 2, 'lamp_corner': 1, 'lamp_window': 1, 'lamp_sun': 2}
+         'tv', 'blind_living', 'blind_dining', 'door_bedroom', 'door_outside']
+PAD = {'thermostat': 3, 'speaker_l': 2, 'speaker_r': 2, 'lamp_corner': 1, 'lamp_window': 1, 'lamp_sun': 2,
+       'blind_living': 3, 'blind_dining': 3}
 
 
 def grey_png(a, path):
@@ -295,6 +296,7 @@ def main():
         'lamp_corner': cv.masks['lamp_corner'], 'lamp_window': cv.masks['lamp_window'],
         'speaker_l': cv.masks['speaker_l'], 'speaker_r': cv.masks['speaker_r'],
         'thermostat': cv.masks['thermostat'], 'tv': cv.masks['tv'], 'kotatsu': cv.masks['kotatsu'],
+        'blind_living': cv.masks['blind_living'], 'blind_dining': cv.masks['blind_dining'],
     }
     taken = np.zeros(cv.idx.shape, bool)
     hot = {}
@@ -315,7 +317,7 @@ def main():
     blinds = {}
     for name, (x0, x1) in BLINDS.items():
         blinds[name] = {'x0': x0, 'x1': x1,
-                        'top': [float(ns['VAL_Y'](x0) - T + 1), float(ns['VAL_Y'](x1) - T + 1)],
+                        'top': [float(ns['VAL_Y'](x0) - T + 7), float(ns['VAL_Y'](x1) - T + 7)],   # under the roll
                         'bottom': [float(ns['TRACK_Y'](x0) - T - 1), float(ns['TRACK_Y'](x1) - T - 1)]}
 
     ramp = {H['black']: H['dark'], H['dark']: H['slate'], H['slate']: H['wall_shade'], H['wall_shade']: H['wall'],
