@@ -24,7 +24,7 @@ def on_floor(x, y):
 # runs (0,49)-(57,77); the back wall's corners are x 57 and x 382; its floor line is y 240
 CEIL_POLY = [(0, 30), (437, 30), (395, 48), (383, 62), (382, 78), (57, 78), (0, 49)]
 BACK_POLY = [(58, 79), (381, 79), (381, 240), (58, 240)]
-LEFT_POLY = [(0, 50), (57, 78), (57, 240), (0, 246)]
+LEFT_POLY = [(0, 50), (57, 78), (57, 240), (0, 261)]      # its floor line runs to the VP (Fermion's ran flat, to y 246)
 RIGHT_UPPER_POLY = [(383, 62), (395, 48), (437, 30), (500, 30), (500, 34), (383, 100)]   # above the curtain rod
 REGION = {k: cv.m_poly(v) for k, v in (('ceil', CEIL_POLY), ('back', BACK_POLY), ('left', LEFT_POLY),
                                        ('right_upper', RIGHT_UPPER_POLY))}
@@ -32,7 +32,7 @@ REGION = {k: cv.m_poly(v) for k, v in (('ceil', CEIL_POLY), ('back', BACK_POLY),
 # what stands on or against the back wall, as drawn
 OBJ_POLY = {
     'glass_door': [(62, 100), (129, 100), (129, 238), (62, 238)],
-    'left_door': [(10, 86), (47, 98), (47, 236), (10, 240)],
+    'left_door': [(10, 86), (47, 98), (47, 244), (10, 257)],    # top and foot both on lines to the VP
     'clock': [(204, 91), (236, 91), (236, 125), (204, 125)],
     'switch': [(133, 150), (140, 150), (140, 162), (133, 162)],
     'sideboard': [(143, 160), (285, 160), (285, 241), (143, 241)],

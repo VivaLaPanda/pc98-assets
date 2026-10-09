@@ -12,10 +12,10 @@ CLR = (YY > CLEAR_Y) & ~SOFA
 KEEP = cv.m_rect(190, 199, 287, 241) | cv.m_rect(288, 199, 339, 242)   # the sideboard's right part, the TV stand's left
 CLR &= ~KEEP
 
-# ---- the floor lines: the left wall's (0,246)-(57,240), the back wall's y 240, the right wall's from (382,240) to the VP
+# ---- the floor lines: the back wall's y 240, and each side wall's from its corner (57 and 382, y 240) to the VP
 def floor_line_y(x):
     x = np.asarray(x, float)
-    left = 246 - (x / 57) * 6
+    left = 240 + (x - 57) * (240 - VP[1]) / (57 - VP[0])
     right = 240 + (x - 382) * (240 - VP[1]) / (382 - VP[0])
     return np.where(x < 57, left, np.where(x > 382, right, 240))
 
@@ -58,24 +58,28 @@ for y in range(_last + 1, cv.h):
 
 # ---- walls below CLEAR_Y down to the floor line: continue each wall's texture from 16 rows up (the tile phase)
 for x0, x1 in ((0, 10), (47, 62), (129, 143), (377, 383)):
-    for y in range(CLEAR_Y + 1, 247):
+    for y in range(CLEAR_Y + 1, 263):
         sel = (XX[y] >= x0) & (XX[y] < x1) & ~FLOOR_M[y] & CLR[y]
         cv.idx[y, sel] = cv.idx[y - 16, sel]
 
 # ---- skirting: a wood board along the walls' feet, 3px, its top edge lit
 SKIRT = CLR & ~FLOOR_M & (YY >= floor_line_y(XX) - 3) & (XX < 383)
+SKIRT &= ~((XX >= 10) & (XX <= 46)) & ~((XX >= 62) & (XX <= 128))   # not across the doors
 cv.fill(SKIRT, WOOD)
 cv.fill(SKIRT & (YY < floor_line_y(XX) - 2), DESK_SHADE)
 
-# ---- the bedroom door down to the floor: its top (rows 88-112) mirrored for the bottom (ends at the floor line)
+# ---- the bedroom door down to the floor: in each column its top (from its top edge, a line to the VP) mirrored
+# above the floor line, so its foot runs to the VP like its head; the plain field and its panel between
 LD = cv.m_poly(OBJ_POLY['left_door'])
-for y in range(CLEAR_Y + 1, 241):
-    src_y = 88 + (240 - y) + 6
-    sel = (XX[y] >= 10) & (XX[y] <= 46) & CLR[y]
-    if 98 <= src_y <= 140:
-        cv.idx[y, sel] = cv.idx[src_y, sel]
-    else:
-        cv.idx[y, sel] = cv.idx[190, sel]               # the door's plain field and its panel, as at mid height
+_dtop = lambda x: VP[1] + (86 - VP[1]) / (10 - VP[0]) * (x - VP[0])
+for x in range(10, 47):
+    _bot = int(round(float(floor_line_y(x))))
+    _t = float(_dtop(x))
+    for y in range(CLEAR_Y + 1, _bot + 1):
+        if not CLR[y, x]:
+            continue
+        src_y = int(round(_t + 8 + (_bot - y)))
+        cv.idx[y, x] = cv.idx[src_y, x] if _t + 12 <= src_y <= _t + 54 else cv.idx[190, x]
 
 # ---- the glass door: its lower pane continues, then the bottom rail and a kick plate, mirrored from its top rail
 for y in range(CLEAR_Y + 1, 239):

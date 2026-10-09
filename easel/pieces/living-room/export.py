@@ -305,20 +305,26 @@ def main():
         k = int(np.argmin((ys - ys.mean()) ** 2 + (xs - xs.mean()) ** 2))
         return [int(xs[k]), int(ys[k])]
 
+    # each blind's cloth, where it can come down: its span of the sliding doors, less what stands in front of them
+    front = np.zeros(cv.idx.shape, bool)
+    for k in ('couch', 'kotatsu', 'lamp_dining', 'lamp_window', 'speaker_r'):
+        front |= cv.masks[k]
+    cloth = {k: ns['BLIND_CLOTH'][k] & ~front for k in ('blind_living', 'blind_dining')}
+    for k, m in cloth.items():
+        mask_png(crop(m), OUT / f'mask-cloth-{k}.png')
+
     # hotspots: owned masks front to back, outlines, anchors, lit rects
     objs = {
         'door_bedroom': ns['OBJ']['left_door'],
-        # the sliding doors: their glass and frames, but not what stands in front (the sofa, the arc lamp, the side
-        # table and its things): pointing at the sofa isn't pointing at the door
-        'door_outside': ((ns['XX'] >= 397) & (ns['YY'] > ns['VAL_Y'](ns['XX'])) & (ns['YY'] < ns['TRACK_Y'](ns['XX']))
-                         & ~cv.masks['couch'] & ~cv.masks['kotatsu'] & ~cv.masks['lamp_dining']
-                         & ~cv.masks['lamp_window'] & ~cv.masks['speaker_r']
-                         & ~cv.masks['blind_living'] & ~cv.masks['blind_dining']),
+        # the way out is the front door, on the back wall by the bedroom's (the user: the sliding doors are behind
+        # the blinds half the time); the sliding doors' glass belongs to the blinds over it
+        'door_outside': ns['OBJ']['glass_door'],
         'lamp_sun': cv.masks['lamp_sun'], 'lamp_dining': cv.masks['lamp_dining'],
         'lamp_corner': cv.masks['lamp_corner'], 'lamp_window': cv.masks['lamp_window'],
         'speaker_l': cv.masks['speaker_l'], 'speaker_r': cv.masks['speaker_r'],
         'thermostat': cv.masks['thermostat'], 'tv': cv.masks['tv'], 'kotatsu': cv.masks['kotatsu'],
-        'blind_living': cv.masks['blind_living'], 'blind_dining': cv.masks['blind_dining'],
+        'blind_living': cv.masks['blind_living'] | cloth['blind_living'],
+        'blind_dining': cv.masks['blind_dining'] | cloth['blind_dining'],
     }
     taken = np.zeros(cv.idx.shape, bool)
     hot = {}
@@ -335,12 +341,17 @@ def main():
                              'h': int(ys.max() - ys.min() + 1)},
                      'mask': f'mask-obj-{name}.png'}
 
-    # blinds: each over its panes, from under the valance down toward the track
+    # blinds: each over its panes, from under its roll down to the track, column by column (both edges run to the VP,
+    # so a blind part-way down has its foot on a VP line too); `weave` marks the columns that end a thread repeat, and
+    # the cloth paints only inside its mask (not over the sofa or the arc lamp)
     blinds = {}
     for name, (x0, x1) in BLINDS.items():
+        key = {'Living Room Blinds': 'blind_living', 'Dining Room Blinds': 'blind_dining'}[name]
+        xs = np.arange(x0, x1 + 1)
         blinds[name] = {'x0': x0, 'x1': x1,
-                        'top': [float(ns['VAL_Y'](x0) - T + 7), float(ns['VAL_Y'](x1) - T + 7)],   # under the roll
-                        'bottom': [float(ns['TRACK_Y'](x0) - T - 1), float(ns['TRACK_Y'](x1) - T - 1)]}
+                        'top': [round(float(v), 2) for v in ns['TUBE_Y'](xs) - T + 1],
+                        'bottom': [round(float(v), 2) for v in ns['TRACK_Y'](xs) - T - 1],
+                        'weave': ns['BLIND_WEAVE'][key], 'mask': f'mask-cloth-{key}.png'}
 
     ramp = {H['black']: H['dark'], H['dark']: H['slate'], H['slate']: H['wall_shade'], H['wall_shade']: H['wall'],
             H['wall']: H['curtain'], H['wood']: H['desk_shade'], H['desk_shade']: H['desk'], H['desk']: H['paper'],
@@ -360,7 +371,7 @@ def main():
         'blinds': blinds,
         'hotspots': hot, 'z_order': ORDER, 'ramp': {str(k): v for k, v in ramp.items()},
         'masks': ['mask-screen.png', 'mask-thermostat_face.png', 'mask-speaker_l_led.png', 'mask-speaker_r_led.png']
-                 + [h['mask'] for h in hot.values()],
+                 + [b['mask'] for b in blinds.values()] + [h['mask'] for h in hot.values()],
     }
     (OUT / 'scene.json').write_text(json.dumps(spec, indent=1))
     # the room at noon with everything off: what the page shows before (or without) the live render
