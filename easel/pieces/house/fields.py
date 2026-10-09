@@ -48,6 +48,23 @@ def ceiling_bounce(g: GBuffer, lamp: Lamp, ceiling_y: float) -> np.ndarray:
     return E
 
 
+def window(g: GBuffer, points: np.ndarray, inward: tuple[float, float, float], reach: float) -> np.ndarray:
+    """Daylight through glass: a grid of points on the pane, each sending light inward (cos to the pane's normal),
+    each lit surface taking it by its own facing and the distance."""
+    n_in = np.asarray(inward, float)
+    E = np.zeros(g.P.shape[:2])
+    for p in points:
+        d = np.asarray(p, float)[None, None] - g.P                    # surface -> pane point
+        r = np.linalg.norm(d, axis=-1)
+        ok = np.isfinite(r)
+        r = np.where(ok, np.maximum(r, 10.0), 1e9)
+        L = d / r[..., None]
+        emit = np.clip(-(L * n_in).sum(-1), 0, 1)                     # how squarely the pane faces the surface
+        take = np.clip((g.N * L).sum(-1), 0, 1) * 0.8 + 0.2
+        E += np.where(ok, emit * take / (1.0 + (r / reach) ** 2 * 3.0), 0.0)
+    return E / len(points)
+
+
 def reference(lamp: Lamp, r: float) -> float:
     """The irradiance a surface facing the lamp gets at `r` cm: one scale for every lamp, so a sofa right under a
     lamp doesn't set the scale (and saturate) for the whole room."""

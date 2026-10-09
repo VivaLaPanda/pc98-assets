@@ -44,8 +44,16 @@ NIGHT = ['#78b', '#767', '#67b', '#cff', '#9be', '#653', '#558', '#457', '#646',
 LIGHTS = {'Dining Room Light': 'dining', 'Corner Table Lamp': 'corner', 'Windowside Table': 'window',
           'The Sun': 'sun'}
 # a lamp's light against the day: faint at noon (the room is already bright), full at night
-LAMP_BY_PHASE = {'noon': 0.25, 'morning': 0.35, 'afternoon': 0.35, 'evening': 0.65, 'sunset': 0.75, 'dusk': 0.9,
-                 'dawn': 0.9, 'night': 1.0}
+LAMP_BY_PHASE = {'noon': 0.12, 'morning': 0.18, 'afternoon': 0.18, 'evening': 0.5, 'sunset': 0.6, 'dusk': 0.85,
+                 'dawn': 0.85, 'night': 1.0}
+# the day through the glass: how strong, and the sky's colour at each time of day (night: none)
+DAY_BY_PHASE = {'noon': 0.8, 'morning': 0.72, 'afternoon': 0.75, 'evening': 0.6, 'sunset': 0.65, 'dusk': 0.22,
+                'dawn': 0.26, 'night': 0.0}
+# the room's ambient by day, a little under its full colours, so the light through the glass gives it a direction
+AMBIENT = {'noon': 0.84, 'morning': 0.85, 'afternoon': 0.84, 'evening': 0.88, 'sunset': 0.9, 'dusk': 0.96, 'dawn': 0.96,
+           'night': 1.0}
+DAY_COLOR = {'noon': '#fff8f0', 'morning': '#f2f4ff', 'afternoon': '#fff0dc', 'evening': '#ffd6a0',
+             'sunset': '#ff9a60', 'dusk': '#a898ff', 'dawn': '#ffc0c8', 'night': '#000000'}
 BLINDS = {'Living Room Blinds': (399, 471), 'Dining Room Blinds': (479, 499)}
 # hotspot objects, front to back (where they overlap, the earlier one owns the pixels)
 ORDER = ['lamp_dining', 'lamp_window', 'speaker_r', 'kotatsu', 'lamp_sun', 'lamp_corner', 'speaker_l', 'thermostat',
@@ -217,7 +225,7 @@ def main():
     # the glass that is still glass: not what stands in front of it (the couch, the arc lamp, the side table)
     glass = ns['GLASS'] & np.isin(cv.idx, [ns['SCREEN'], ns['PAPER'], ns['CURTAIN'], ns['GLOW']])
     for k in ('couch', 'kotatsu', 'lamp_dining', 'lamp_window', 'speaker_r'):
-        glass &= ~R.grow(cv.masks[k], 1)
+        glass &= ~cv.masks[k]
     mask_png(crop(glass), OUT / 'outside.png')
     layers = {}
     for ph in phases.PHASES:
@@ -257,11 +265,20 @@ def main():
     kt = ns['KT_C']
     heater = fields.Lamp((kt[0], F0 + 6, kt[2]), 'omni', 60, 1.0)
     E = fields.irradiance(g, heater)
-    near_floor = np.isfinite(g.P[..., 1]) & (g.P[..., 1] < F0 + 14)
-    E = np.where(near_floor | ns['KQ'].mask() & (g.P[..., 1] < F0 + 20), E, 0)
+    # the heater's glow shows only where it leaks out: the floor in a ring at the quilt's hem
+    hem_ring = R.grow(cv.masks['kotatsu'], 6) & ~cv.masks['kotatsu'] & ns['FLOOR_M']
+    E = np.where(hem_ring, E, 0)
     grey_png(crop(fields.to_field(E, np.percentile(E[E > 0], 99) if (E > 0).any() else 1)), OUT / 'light-kotatsu.png')
-    light_spec['kotatsu'] = {'field': 'light-kotatsu.png', 'shade': None, 'gain': 0.8, 'color': '#f52',
+    light_spec['kotatsu'] = {'field': 'light-kotatsu.png', 'shade': None, 'gain': 0.5, 'color': '#f52',
                              'phaseGain': LAMP_BY_PHASE}
+    # daylight through the sliding doors: their glass as a grid of points shining into the room (-X)
+    pts = [(178, y, z) for z in np.linspace(185, 262, 7) for y in np.linspace(-110, 60, 6)]
+    E = fields.window(g, np.array(pts), (-1, 0, 0), 260)
+    ref = fields.window(fields.GBuffer(np.array([[[130.0, F0, 225.0]]]), np.array([[[0.0, 1.0, 0.0]]])), np.array(pts),
+                        (-1, 0, 0), 260)[0, 0]
+    grey_png(crop(fields.to_field(E, ref)), OUT / 'light-daylight.png')
+    light_spec['daylight'] = {'field': 'light-daylight.png', 'shade': None, 'gain': 1.0, 'phaseGain': DAY_BY_PHASE,
+                              'phaseColor': DAY_COLOR}
 
     # devices
     for k in ('screen', 'thermostat_face', 'speaker_l_led', 'speaker_r_led'):
@@ -326,7 +343,7 @@ def main():
             H['curtain']: H['paper']}
     spec = {
         'size': [cv.w, cv.h - T], 'scale': 4, 'idx': 'idx.png', 'registers': H,
-        'phases': pals, 'albedo': day,
+        'phases': pals, 'albedo': day, 'ambient': AMBIENT,
         'outside': {'mask': 'outside.png', 'layers': layers},
         'lights': light_spec, 'light_names': LIGHTS,
         'tv': {'screen': scr, 'mask': 'mask-screen.png', 'glow': 'light-tv.png', 'backdrop': 'tv-backdrop@4x.png',

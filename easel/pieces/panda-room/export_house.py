@@ -39,9 +39,18 @@ DAY = dict(paper='#fff', desk='#fca', curtain='#cde', screen='#cff', glow='#bcd'
            wall_shade='#897', desk_shade='#c77', wood='#743', floor='#46d', slate='#557', red='#c14', dark='#344',
            white='#fff', black='#111')
 LIGHTS = {'Bedroom Lamp A': 'desk', 'Bedroom Lamp B': 'desk'}   # the user: the desk lamp is the bedroom lamp
-LAMP_BY_PHASE = {'noon': 0.25, 'morning': 0.35, 'afternoon': 0.35, 'evening': 0.65, 'sunset': 0.75, 'dusk': 0.9,
-                 'dawn': 0.9, 'night': 1.0}
+LAMP_BY_PHASE = {'noon': 0.12, 'morning': 0.18, 'afternoon': 0.18, 'evening': 0.5, 'sunset': 0.6, 'dusk': 0.85,
+                 'dawn': 0.85, 'night': 1.0}
 KNICK = ['desk_lamp']
+# the day through the balcony door (the living room's tables: one sun for the house)
+
+
+DAY_BY_PHASE = {'noon': 0.8, 'morning': 0.72, 'afternoon': 0.75, 'evening': 0.6, 'sunset': 0.65, 'dusk': 0.22,
+                'dawn': 0.26, 'night': 0.0}
+DAY_COLOR = {'noon': '#fff8f0', 'morning': '#f2f4ff', 'afternoon': '#fff0dc', 'evening': '#ffd6a0',
+             'sunset': '#ff9a60', 'dusk': '#a898ff', 'dawn': '#ffc0c8', 'night': '#000000'}
+AMBIENT = {'noon': 0.84, 'morning': 0.85, 'afternoon': 0.84, 'evening': 0.88, 'sunset': 0.9, 'dusk': 0.96, 'dawn': 0.96,
+           'night': 1.0}
 
 
 def grey_png(a, path):
@@ -144,6 +153,12 @@ def main():
     E = fields.irradiance(g, desk)
     grey_png(fields.to_field(E, fields.reference(desk, 40.0)), OUT / 'light-desk.png')
     grey_png(np.where(cv.masks['shade_desk'], 255, 0), OUT / 'mask-shade-desk.png')
+    # daylight through the balcony door: its glass (the back wall, Z 226) as points shining in (-Z)
+    pts = [(x, y, 226.0) for x in np.linspace(-62, 34, 6) for y in np.linspace(-120, 50, 6)]
+    E = fields.window(g, np.array(pts), (0, 0, -1), 280)
+    ref = fields.window(fields.GBuffer(np.array([[[-10.0, -141.0, 190.0]]]), np.array([[[0.0, 1.0, 0.0]]])),
+                        np.array(pts), (0, 0, -1), 280)[0, 0]
+    grey_png(fields.to_field(E, ref), OUT / 'light-daylight.png')
 
     hot = {}
     taken = np.zeros(cv.idx.shape, bool)
@@ -169,7 +184,10 @@ def main():
         'phases': pals, 'albedo': day,
         'outside': {'mask': 'outside.png', 'layers': layers},
         'lights': {'desk': {'field': 'light-desk.png', 'shade': 'mask-shade-desk.png', 'gain': 1.0,
-                            'phaseGain': LAMP_BY_PHASE}},
+                            'phaseGain': LAMP_BY_PHASE},
+                   'daylight': {'field': 'light-daylight.png', 'shade': None, 'gain': 1.0,
+                                'phaseGain': DAY_BY_PHASE, 'phaseColor': DAY_COLOR}},
+        'ambient': AMBIENT,
         'light_names': LIGHTS,
         'twinkle_phases': ['night', 'dusk'],
         'hotspots': hot, 'ramp': {str(k): int(v) for k, v in LIT.items()}, 'rim': names['glow'],
