@@ -1,14 +1,14 @@
 """Export Panda's Room as a live scene for the site's renderer (js/house-render.js): the same day/night cycle as the
-living room, and the stand lamp mirroring Panda's real bedroom lamp (Bedroom Lamp A/B). Nothing else in the bedroom
+living room, and the desk lamp mirroring Panda's real bedroom lamp (Bedroom Lamp A/B). Nothing else in the bedroom
 follows the house.
 
 Writes easel/pieces/panda-room/out/site-house/ (gitignored: the room is third-party based), native 500x357:
-  scene.json            registers per time of day (the night is the room as it was drawn), day inks, the stand lamp,
+  scene.json            registers per time of day (the night is the room as it was drawn), day inks, the desk lamp,
                         the glass and its view per phase, each hotspot's mask and lit rect, the hover ramp
   idx.png               the room's index map (grey = index * 16 + 8)
   outside.png           the balcony door's glass and the low city behind the balusters
   outside-<phase>.png   the view at each time of day but night (the night is the room's own skyline and moon)
-  light-stand.png       the stand lamp's traced field; mask-shade-stand.png its shade
+  light-desk.png        the desk lamp's traced field; mask-shade-desk.png its shade
   mask-obj-<id>.png     each hotspot object (exclusive, front first), for hover states drawn in the current light
 Run: uv run python easel/pieces/panda-room/export_house.py
 """
@@ -38,10 +38,10 @@ OUT = HERE / 'out' / 'site-house'
 DAY = dict(paper='#fff', desk='#fca', curtain='#cde', screen='#cff', glow='#bcd', bedspread='#e92', wall='#aa9',
            wall_shade='#897', desk_shade='#c77', wood='#743', floor='#46d', slate='#557', red='#c14', dark='#344',
            white='#fff', black='#111')
-LIGHTS = {'Bedroom Lamp A': 'stand', 'Bedroom Lamp B': 'stand'}
+LIGHTS = {'Bedroom Lamp A': 'desk', 'Bedroom Lamp B': 'desk'}   # the user: the desk lamp is the bedroom lamp
 LAMP_BY_PHASE = {'noon': 0.25, 'morning': 0.35, 'afternoon': 0.35, 'evening': 0.65, 'sunset': 0.75, 'dusk': 0.9,
                  'dawn': 0.9, 'night': 1.0}
-KNICK = ['stand_lamp', 'desk_lamp']
+KNICK = ['desk_lamp']
 
 
 def grey_png(a, path):
@@ -140,13 +140,9 @@ def main():
         layers[ph] = f'outside-{ph}.png'
 
     g = gbuffer(cv, ns)
-    lamp = fields.Lamp((-211, 10, 214), 'omni', 120, 1.0)
-    E = fields.irradiance(g, lamp)
-    grey_png(fields.to_field(E, np.percentile(E, 99.6)), OUT / 'light-stand.png')
-    grey_png(np.where(cv.masks['shade_stand'], 255, 0), OUT / 'mask-shade-stand.png')
-    desk = fields.Lamp((160, -6, 218), 'down', 70, 1.0)            # the arm lamp's head, turned down to the desk
+    desk = fields.Lamp((160, -6, 218), 'down', 90, 1.0)            # the arm lamp's head, turned down to the desk
     E = fields.irradiance(g, desk)
-    grey_png(fields.to_field(E, np.percentile(E, 99.7)), OUT / 'light-desk.png')
+    grey_png(fields.to_field(E, fields.reference(desk, 40.0)), OUT / 'light-desk.png')
     grey_png(np.where(cv.masks['shade_desk'], 255, 0), OUT / 'mask-shade-desk.png')
 
     hot = {}
@@ -172,9 +168,7 @@ def main():
         'size': [cv.w, cv.h], 'scale': 4, 'idx': 'idx.png', 'registers': names,
         'phases': pals, 'albedo': day,
         'outside': {'mask': 'outside.png', 'layers': layers},
-        'lights': {'stand': {'field': 'light-stand.png', 'shade': 'mask-shade-stand.png', 'gain': 0.9,
-                             'phaseGain': LAMP_BY_PHASE},
-                   'desk': {'field': 'light-desk.png', 'shade': 'mask-shade-desk.png', 'gain': 1.0,
+        'lights': {'desk': {'field': 'light-desk.png', 'shade': 'mask-shade-desk.png', 'gain': 1.0,
                             'phaseGain': LAMP_BY_PHASE}},
         'light_names': LIGHTS,
         'twinkle_phases': ['night', 'dusk'],

@@ -48,6 +48,12 @@ def ceiling_bounce(g: GBuffer, lamp: Lamp, ceiling_y: float) -> np.ndarray:
     return E
 
 
+def reference(lamp: Lamp, r: float) -> float:
+    """The irradiance a surface facing the lamp gets at `r` cm: one scale for every lamp, so a sofa right under a
+    lamp doesn't set the scale (and saturate) for the whole room."""
+    return lamp.gain / (1.0 + (r / lamp.reach) ** 2 * 3.0)
+
+
 def to_field(E: np.ndarray, top: float) -> np.ndarray:
     """0..255 greyscale: `top` maps to 255 (beyond it saturates), a gentle curve below."""
     t = np.clip(E / top, 0, 1)

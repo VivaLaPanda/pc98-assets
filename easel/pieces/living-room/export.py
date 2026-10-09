@@ -101,10 +101,11 @@ def gbuffer(cv, ns):
     N[q] = n[q]
     board = ns['KT_BOARD']
     plane(board, np.full((h, w), ns['KT_C'][2]), (0, 1, 0))
-    couch = ns['COUCH']
+    quilt_extra = cv.masks['kotatsu'] & ~q & ~board          # the redrawn quilt's spread past 06's mesh
+    plane(quilt_extra, np.clip(D * ns['EYE'] / np.maximum(YY - VP[1], 1e-3), 60, 400), (0, 0.7, -0.7))
+    couch = ns['COUCH'] | cv.masks['couch']                 # the redrawn sofa's own outline (07b), not just 07's boxes
     Zc = 125 / np.where(rx > 0.01, rx, np.nan)
     plane(couch, np.clip(np.nan_to_num(Zc, nan=200), 60, 400), tuple(np.array([-0.55, 0.83, 0]) / 1.0))
-    P[ns['GLASS']] = np.nan
     return fields.GBuffer(P, N), ceil_y
 
 
@@ -229,6 +230,7 @@ def main():
 
     # lamplight
     g, ceil_y = gbuffer(cv, ns)
+    g.P[glass] = np.nan                                     # true glass takes no lamplight (its view is outside)
     F0 = ns['FLOOR_Y']
     lamps = {
         'dining': fields.Lamp((75, F0 + 118, 158), 'down', 150, 1.0),
@@ -239,7 +241,7 @@ def main():
     light_spec = {}
     for name, lamp in lamps.items():
         E = fields.ceiling_bounce(g, lamp, ceil_y) if lamp.kind == 'up' else fields.irradiance(g, lamp)
-        top = np.percentile(E[np.isfinite(g.P[..., 0])], 99.6)
+        top = fields.reference(lamp, 45.0)                  # full brightness ~45cm from the lamp, for every lamp
         f = fields.to_field(E, top)
         grey_png(crop(f), OUT / f'light-{name}.png')
         shade = ns['cv'].masks[f'shade_{name}']

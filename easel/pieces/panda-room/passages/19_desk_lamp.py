@@ -1,5 +1,5 @@
-# 19 the desk lamp (not one of Panda's real lights: a visitor can click it on and off, the site lights it): the arm
-# lamp over the monitor, its head turned down to the desk. Nothing is painted; its masks: the lamp, and the head's
+# 19 the desk lamp, which mirrors Panda's real bedroom lamp (Bedroom Lamp A/B; read-only, the site lights it): the
+# arm lamp over the monitor, its head turned down to the desk. Nothing is painted; its masks: the lamp, and the head's
 # opening (what glows when it's on).
 DESK_LAMP = cv.m_poly([(388, 108), (398, 101), (410, 101), (418, 108), (418, 138), (410, 138), (406, 128), (394, 126),
                        (388, 118)]) & ~cv.m_where(WALL, WALL_SHADE)
