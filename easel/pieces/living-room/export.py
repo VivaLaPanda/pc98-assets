@@ -12,7 +12,7 @@ easel canvas without its TOP rows):
   mask-<name>.png         a lamp's shade (what glows), the TV's screen, the thermostat's face, the speakers' LEDs, each
                           hotspot object (for hover states)
   tv-backdrop@4x.png      the TV on, idle (the Chromecast's ambient photo)
-  tv-play@4x.png          the TV playing: a 6-frame strip
+  tv-play@4x.png          the TV playing: a seamless loop, its frames in a grid (scene.json tv.play)
   note@4x.png             a music note (rises off a speaker while music plays)
 Run: uv run python easel/pieces/living-room/export.py
 """
@@ -183,8 +183,9 @@ def onto_quad(pic, quad, mask):
 
 
 def tv_art(screen_w, screen_h):
-    """The TV's pictures (emissive: they don't take the room's light). Idle: the Chromecast's ambient photo, a lake
-    under mountains. Playing: a sea at sunset, a sailboat drifting, the waves catching the light (6 frames)."""
+    """The TV's pictures in their own (flat) coordinates (emissive: they don't take the room's light). Idle: the
+    Chromecast's ambient photo, a lake under mountains. Playing: a sea at sunset, still (what moves on it is drawn on
+    the glass itself, tv_play); with it, where the sea is and where the sun stands."""
     def rgb(hs):
         return np.array([hexrgb(h) for h in hs])
     yy, xx = np.mgrid[0:screen_h, 0:screen_w]
@@ -198,27 +199,58 @@ def tv_art(screen_w, screen_h):
     lake = yy > screen_h * 0.72
     b[lake] = hexrgb('#7bd')
     b[lake & ((xx + yy * 3) % 7 == 0)] = hexrgb('#cef')
+    # playing: the still sea at sunset
+    p = np.zeros((screen_h, screen_w, 3), np.uint8)
+    sky = rgb(['#a69', '#e87', '#fc8'])
+    p[:] = sky[np.clip(yy * 3 // max(int(screen_h * 0.55), 1), 0, 2)]
+    sun_at = (screen_w * 0.62, screen_h * 0.52)
+    p[(xx - sun_at[0]) ** 2 + (yy - sun_at[1]) ** 2 < 36] = hexrgb('#ffd')
+    sea = yy > screen_h * 0.55
+    p[sea] = hexrgb('#537')
+    return b, p, sea, sun_at
+
+
+TV_PLAY = {'frames': 72, 'cols': 9, 'fps': 6}       # a 12s loop; every motion's period divides 72
+
+
+def tv_play(still, sea, sun_at, quad, on_glass):
+    """The TV playing, a loop that wraps without a seam: the still sea at sunset projected onto the set, and over it,
+    in the glass's own pixels (so nothing drops a column as it moves), a sailboat crossing left to right a pixel a
+    frame (gone off the right before it comes in on the left), wave dashes drifting the same way (a pixel every 3
+    frames, period 24), the sun's path twinkling in place (period 8). Frames in a grid of TV_PLAY['cols']."""
+    pw, ph = still.shape[1], still.shape[0]
+    base = onto_quad(still, quad, on_glass)
+    sea_g = onto_quad(np.repeat(sea[..., None].astype(np.uint8) * 255, 3, -1), quad, on_glass)[..., 0] > 0
+    h, w = on_glass.shape
+    yy, xx = np.mgrid[0:h, 0:w]
+    Hf = homography([(0, 0), (pw, 0), (pw, ph), (0, ph)], quad)
+    q = Hf @ np.array([sun_at[0], sun_at[1], 1.0])
+    sun_x = q[0] / q[2]
+    top = np.array([np.argmax(sea_g[:, x]) if sea_g[:, x].any() else h - 1 for x in range(w)])
+    path = sea_g & (np.abs(xx + 0.5 - sun_x) <= 3 + 0.4 * (yy - top[np.clip(xx, 0, w - 1)]))
+    phase = np.random.default_rng(9).integers(0, 8, (h, w))                  # each glint its own moment
+    boat = [(3, r, '#223') for r in range(-6, 0)]                            # the mast
+    boat += [(4 + c, -6 + k, '#fff') for k in range(5) for c in range(k + 1)]   # the sail
+    boat += [(c, r, '#223') for r in (0, 1) for c in range(8)]               # the hull
     frames = []
-    for f in range(6):
-        p = np.zeros((screen_h, screen_w, 3), np.uint8)
-        sky = rgb(['#a69', '#e87', '#fc8'])
-        p[:] = sky[np.clip(yy * 3 // max(int(screen_h * 0.55), 1), 0, 2)]
-        sun = (xx - screen_w * 0.62) ** 2 + (yy - screen_h * 0.52) ** 2 < 36
-        p[sun] = hexrgb('#ffd')
-        sea = yy > screen_h * 0.55
-        p[sea] = hexrgb('#537')
-        glint = sea & ((xx * 2 + yy * 5 + f * 3) % 9 == 0) & (np.abs(xx - screen_w * 0.62) < 8)
-        p[glint] = hexrgb('#fd9')
-        wave = sea & ((xx + yy * 4 + f * 2) % 11 == 0)
-        p[wave] = hexrgb('#759')
-        bx = int(screen_w * 0.18 + f * 2)
-        by = int(screen_h * 0.55)
-        p[by - 6:by, bx + 2:bx + 3] = hexrgb('#223')                # the mast
-        for k in range(5):
-            p[by - 6 + k, bx + 3:bx + 4 + k] = hexrgb('#fff')       # the sail
-        p[by:by + 2, bx - 1:bx + 7] = hexrgb('#223')                # the hull
-        frames.append(p)
-    return b, frames
+    for f in range(TV_PLAY['frames']):
+        im = base.copy()
+        wave = sea_g & ~path & ((xx - f // 3 + yy * 4) % 8 == 0)
+        im[wave, :3] = hexrgb('#759')
+        im[path & (phase == f % 8), :3] = hexrgb('#fd9')
+        x0 = f - 8                                                             # -8 (all off the left) .. 63 (off the right)
+        by = top[int(np.clip(x0 + 3, 0, w - 1))]
+        for c, r, ink in boat:
+            x, y = x0 + c, by + r
+            if 0 <= x < w and 0 <= y < h and on_glass[y, x]:
+                im[y, x, :3] = hexrgb(ink)
+        frames.append(im)
+    cols = TV_PLAY['cols']
+    rows = -(-len(frames) // cols)
+    sheet = np.zeros((rows * h, cols * w, 4), np.uint8)
+    for i, im in enumerate(frames):
+        sheet[(i // cols) * h:(i // cols + 1) * h, (i % cols) * w:(i % cols + 1) * w] = im
+    return sheet, frames
 
 
 NOTE = '''
@@ -319,10 +351,10 @@ def main():
     # the pictures (a 16:10 set) projected onto the glass as drawn, in its bounding box, transparent outside the glass
     quad = [(x - scr['x'], y - T - scr['y']) for x, y in ns['TV_QUAD']]
     on_glass = sm[scr['y']:scr['y'] + scr['h'], scr['x']:scr['x'] + scr['w']]
-    backdrop, frames = tv_art(TV_SRC[0], TV_SRC[1])
+    backdrop, still, sea, sun_at = tv_art(TV_SRC[0], TV_SRC[1])
     R.x4(Image.fromarray(onto_quad(backdrop, quad, on_glass), 'RGBA')).save(OUT / 'tv-backdrop@4x.png')
-    strip = np.concatenate([onto_quad(f, quad, on_glass) for f in frames], 1)
-    R.x4(Image.fromarray(strip, 'RGBA')).save(OUT / 'tv-play@4x.png')
+    sheet, _ = tv_play(still, sea, sun_at, quad, on_glass)
+    R.x4(Image.fromarray(sheet, 'RGBA')).save(OUT / 'tv-play@4x.png')
     rows = NOTE.strip('\n').splitlines()
     note = np.zeros((len(rows), max(len(r) for r in rows), 4), np.uint8)
     for j, r in enumerate(rows):
@@ -396,7 +428,7 @@ def main():
         'outside': {'mask': 'outside.png', 'layers': layers},
         'lights': light_spec, 'light_names': LIGHTS,
         'tv': {'screen': scr, 'mask': 'mask-screen.png', 'glow': 'light-tv.png', 'backdrop': 'tv-backdrop@4x.png',
-               'play': {'src': 'tv-play@4x.png', 'frames': 6, 'fps': 3}},
+               'play': dict(src='tv-play@4x.png', **TV_PLAY)},
         'kotatsu': {'glow': 'light-kotatsu.png', 'plug': 'Kotatsu'},
         'thermostat': {'face': 'mask-thermostat_face.png'},
         'speakers': {'leds': ['mask-speaker_l_led.png', 'mask-speaker_r_led.png'],
