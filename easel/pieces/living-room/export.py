@@ -324,15 +324,22 @@ def main():
     E = fields.irradiance(g, tv_l)
     grey_png(crop(fields.to_field(E, np.percentile(E[np.isfinite(g.P[..., 0])], 99.5))), OUT / 'light-tv.png')
     light_spec['tv'] = {'field': 'light-tv.png', 'shade': None, 'gain': 0.45, 'color': '#8bf', 'phaseGain': LAMP_BY_PHASE}
-    kt = ns['KT_C']
-    heater = fields.Lamp((kt[0], F0 + 6, kt[2]), 'omni', 60, 1.0)
-    E = fields.irradiance(g, heater)
-    # the heater's glow shows only where it leaks out: the floor in a ring at the quilt's hem
-    hem_ring = R.grow(cv.masks['kotatsu'], 6) & ~cv.masks['kotatsu'] & ns['FLOOR_M']
-    E = np.where(hem_ring, E, 0)
-    grey_png(crop(fields.to_field(E, np.percentile(E[E > 0], 99) if (E > 0).any() else 1)), OUT / 'light-kotatsu.png')
-    light_spec['kotatsu'] = {'field': 'light-kotatsu.png', 'shade': None, 'gain': 0.5, 'color': '#f52',
+    # the kotatsu's heater: a warm glow out of the gap under its quilt's hem (the dark arch at the front), brightest in
+    # the gap and fading over ~10px onto the rug in front of it; nothing round the rest of the hem
+    YYc, XXc = np.mgrid[0:cv.h, 0:cv.w]
+    gap = (XXc >= 234) & (XXc <= 260) & (YYc >= 332) & (YYc <= 337) & np.isin(cv.idx, [ns['DARK'], ns['SLATE'], ns['BLACK']])   # the hollow, above the hem's outline
+    dist = np.where(gap, 0.0, np.inf)
+    ring = gap.copy()
+    for d in range(1, 15):
+        grown = R.grow(ring, 1)
+        dist[grown & ~ring] = d
+        ring = grown
+    spill = np.isfinite(dist) & (YYc >= 332) & (gap | ns['FLOOR_M']) & ~(cv.masks['kotatsu'] & ~gap)
+    E = np.where(spill, np.exp(-dist / 5.0), 0.0)
+    grey_png(crop(np.clip(E * 255, 0, 255)), OUT / 'light-kotatsu.png')
+    light_spec['kotatsu'] = {'field': 'light-kotatsu.png', 'shade': None, 'gain': 1.6, 'color': '#f83',
                              'phaseGain': LAMP_BY_PHASE}
+    mask_png(crop(gap), OUT / 'mask-kotatsu_gap.png')             # warmed in place when it's on (house-room.js)
     # daylight through the sliding doors: their glass as a grid of points shining into the room (-X)
     pts = [(178, y, z) for z in np.linspace(185, 262, 7) for y in np.linspace(-110, 60, 6)]
     E = fields.window(g, np.array(pts), (-1, 0, 0), 260)
@@ -429,13 +436,13 @@ def main():
         'lights': light_spec, 'light_names': LIGHTS,
         'tv': {'screen': scr, 'mask': 'mask-screen.png', 'glow': 'light-tv.png', 'backdrop': 'tv-backdrop@4x.png',
                'play': dict(src='tv-play@4x.png', **TV_PLAY)},
-        'kotatsu': {'glow': 'light-kotatsu.png', 'plug': 'Kotatsu'},
+        'kotatsu': {'glow': 'light-kotatsu.png', 'plug': 'Kotatsu', 'gap': 'mask-kotatsu_gap.png'},
         'thermostat': {'face': 'mask-thermostat_face.png'},
         'speakers': {'leds': ['mask-speaker_l_led.png', 'mask-speaker_r_led.png'],
                      'at': [hot['speaker_l']['anchor'], hot['speaker_r']['anchor']], 'note': 'note@4x.png'},
         'blinds': blinds,
         'hotspots': hot, 'z_order': ORDER, 'ramp': {str(k): v for k, v in ramp.items()},
-        'masks': ['mask-screen.png', 'mask-thermostat_face.png', 'mask-speaker_l_led.png', 'mask-speaker_r_led.png']
+        'masks': ['mask-screen.png', 'mask-thermostat_face.png', 'mask-kotatsu_gap.png', 'mask-speaker_l_led.png', 'mask-speaker_r_led.png']
                  + [b['mask'] for b in blinds.values()] + [h['mask'] for h in hot.values()],
     }
     (OUT / 'scene.json').write_text(json.dumps(spec, indent=1))
