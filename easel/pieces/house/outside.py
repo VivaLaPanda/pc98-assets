@@ -4,7 +4,10 @@ import numpy as np
 from PIL import Image
 
 import os
-SRC = os.path.join(os.environ.get('PC98_SITE', '/home/panda/code/vivalapanda.moe'), 'img/explore/places/city_overlook.png')
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'src'))
+from pc98.config import SITE  # noqa: E402
+SRC = str(SITE / 'img/explore/places/city_overlook.png')
 W = 336  # left of the overlook's own window frame
 
 

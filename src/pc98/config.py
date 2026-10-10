@@ -3,7 +3,17 @@ import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]                      # this workspace
-SITE = Path(os.environ.get('PC98_SITE', '~/git/vivalapanda.moe')).expanduser()
+def _site() -> Path:
+    """The site checkout: $PC98_SITE, else the Mac's (~/git) or rodney's (~/code), whichever exists."""
+    if os.environ.get('PC98_SITE'):
+        return Path(os.environ['PC98_SITE']).expanduser()
+    for p in ('~/git/vivalapanda.moe', '~/code/vivalapanda.moe'):
+        if Path(p).expanduser().exists():
+            return Path(p).expanduser()
+    return Path('~/git/vivalapanda.moe').expanduser()
+
+
+SITE = _site()
 ANIMATIONS = Path(os.environ.get('PC98_ANIMATIONS', '~/animations')).expanduser()
 CHROME = os.environ.get('PC98_CHROME', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 ASSETS = ROOT / 'assets'
