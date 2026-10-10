@@ -205,15 +205,15 @@ SPK_R = SPK_R & _sr_oc.visible
 THINGS['speaker_r'] = SPK_R
 
 # ---- the Nest thermostat, on the back wall by the hallway door
-TH_C, TH_R = (186, 124), 4
+TH_C, TH_R = (186, 124), 5
 TH = cv.m_ellipse(*TH_C, TH_R, TH_R)
-TH_FACE = cv.m_ellipse(*TH_C, TH_R - 1, TH_R - 1)
-_th2 = occluded(261.0)
+TH_FACE = cv.m_ellipse(*TH_C, TH_R - 2, TH_R - 2)          # the black glass (it shows the heat as orange: house-room.js)
+_th2 = occluded(BACK_Z - 9)               # just proud of the wall (the depth buffer holds the wall at BACK_Z - 8)
 _th2.__enter__()
-cv.fill(TH, CURTAIN)
-cv.fill(TH & (XX > TH_C[0]) & (YY > TH_C[1]), GLOW)
+cv.fill(TH, CURTAIN)                                         # the steel ring, lit from the top left
+cv.fill(TH & (XX + YY > TH_C[0] + TH_C[1] + 1), GLOW)
 cv.fill(TH_FACE, BLACK)
-cv.dots([(TH_C[0] - 1, TH_C[1]), (TH_C[0], TH_C[1]), (TH_C[0] + 1, TH_C[1])], SLATE)
+cv.dots([(TH_C[0] - 1, TH_C[1]), (TH_C[0], TH_C[1]), (TH_C[0] + 1, TH_C[1] - 1)], PAPER)   # the set temperature
 outline(TH, SLATE)
 _th2.__exit__(None, None, None)
 THINGS['thermostat'] = TH
