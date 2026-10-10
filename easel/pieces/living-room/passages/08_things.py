@@ -205,16 +205,19 @@ SPK_R = SPK_R & _sr_oc.visible
 THINGS['speaker_r'] = SPK_R
 
 # ---- the Nest thermostat, on the back wall by the hallway door
-TH_C, TH_R = (186, 124), 5
+TH_C, TH_R = (186, 124), 4
 TH = cv.m_ellipse(*TH_C, TH_R, TH_R)
-TH_FACE = cv.m_ellipse(*TH_C, TH_R - 2, TH_R - 2)          # the black glass (it shows the heat as orange: house-room.js)
+TH_FACE = cv.m_ellipse(*TH_C, TH_R - 1.5, TH_R - 1.5)      # the dark glass (it shows the heat as orange: house-room.js)
 _th2 = occluded(BACK_Z - 9)               # just proud of the wall (the depth buffer holds the wall at BACK_Z - 8)
 _th2.__enter__()
-cv.fill(TH, CURTAIN)                                         # the steel ring, lit from the top left
-cv.fill(TH & (XX + YY > TH_C[0] + TH_C[1] + 1), GLOW)
-cv.fill(TH_FACE, BLACK)
-cv.dots([(TH_C[0] - 1, TH_C[1]), (TH_C[0], TH_C[1]), (TH_C[0] + 1, TH_C[1] - 1)], PAPER)   # the set temperature
-outline(TH, SLATE)
+# in the wall's own inks, so it sits in the room's light: a ring lit at the top left, in the wall's tone below,
+# a slate glass (not black), the reading a soft glow, the wall's shade for its edge
+cv.fill(TH, PAPER)
+cv.fill(TH & (XX + YY > TH_C[0] + TH_C[1]), WALL)
+cv.fill(TH_FACE, SLATE)
+cv.fill(TH_FACE & (XX + YY > TH_C[0] + TH_C[1] + 1), DARK)
+cv.dots([(TH_C[0] - 1, TH_C[1]), (TH_C[0], TH_C[1])], GLOW)
+outline(TH, WALL_SHADE)
 _th2.__exit__(None, None, None)
 THINGS['thermostat'] = TH
 
