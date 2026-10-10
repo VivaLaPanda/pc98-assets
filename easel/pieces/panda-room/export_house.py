@@ -67,7 +67,7 @@ def glass_mask(cv, ns):
     names = cv.names
     city = [names[k] for k in ('black', 'slate', 'glow', 'screen', 'white', 'red', 'paper', 'floor', 'dark')]
     g = np.zeros(cv.idx.shape, bool)
-    g[T + 30:T + 118, 191:235] = True
+    g[T + 30:T + 118, 191:230] = True                     # the left pane, up to the middle post (21: x 230-236)
     g[T + 30:T + 118, 240:284] = True
     low = np.zeros(cv.idx.shape, bool)
     low[T + 134:T + 173, 188:230] = True
