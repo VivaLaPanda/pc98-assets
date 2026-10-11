@@ -372,42 +372,65 @@ def main():
                 note[j, i] = (255, 255, 255, 255)
     R.x4(Image.fromarray(note, 'RGBA')).save(OUT / 'note@4x.png')
 
-    # the AC's paper streamers (anime's sign of an air conditioner running): four strips tied along its vent, blown out
-    # and down toward the room and fluttering, a loop of AC_FRAMES. Stored as the room's ink indices (red channel
-    # index*16+8, alpha where paper is) so the page colours them with the time of day's registers; never over the arc
-    # lamp in front of the wall
-    AC_BOX = (338, 62, 48, 34)                                   # final coords: x, y, w, h
-    AC_FRAMES = 8
+    # the AC's paper streamers (anime's sign of an air conditioner running), as physics would have them: a strip of
+    # paper weighs nothing beside the jet's drag, so it streams almost horizontally out of the vent into the room,
+    # sagging a little toward the tip where the jet is weaker (more when a gust dies). It flutters like a flag: a wave
+    # runs from the knot to the free end, growing toward it. The jet is turbulent, so the flutter isn't regular: the
+    # swing surges and fades with gusts, the rhythm wobbles, the tip now and then whips, and the strip twists, showing
+    # its face (2px), its edge (1px) or its back (the shade ink). Every term goes a whole number of times round per
+    # loop (different numbers per strip and per term), so the loop is seamless but never repeats visibly inside it.
+    # Stored as the room's ink indices (red channel index*16+8, alpha where paper is): the page colours them with the
+    # time of day's registers. Never over the arc lamp, which stands in front of the wall
+    AC_BOX = (318, 60, 68, 42)                                   # final coords: x, y, w, h
+    AC_FRAMES, AC_OFF_FRAMES = 32, 12
     ax0, ay0, aw, ah = AC_BOX
     lamp_front = crop(cv.masks['lamp_dining'])[ay0:ay0 + ah, ax0:ax0 + aw]
-    strips = [((354, 76), 0.0, 'paper'), ((361, 74), 0.37, 'curtain'), ((368, 71), 0.71, 'paper'), ((375, 68), 0.15, 'desk')]   # just under the vent's lip
-    acsheet = np.zeros((ah, aw * AC_FRAMES, 4), np.uint8)
-    # each strip a flag in the jet: it streams out of the vent along the airflow (down and into the room), nearly
-    # straight at the knot, and a wave runs from root to tip, growing toward the tip (which flicks most); the loop is
-    # seamless (the wave's phase goes once round per AC_FRAMES)
-    AC_LEN, AC_WAVE, AC_AMP = 13, 9.0, 2.0                        # px: strip length, wavelength, tip swing
-    flow = np.radians(22)                                          # from straight down, toward the room (left)
-    d = np.array([-np.sin(flow), np.cos(flow)])                    # along the jet (x, y)
-    nrm = np.array([d[1], -d[0]])                                  # across it
-    for f in range(AC_FRAMES):
-        fr = np.zeros((ah, aw, 4), np.uint8)
-        for si, ((sx, sy), ph, ink) in enumerate(strips):
-            length = AC_LEN + (si % 2) * 2 + np.sin(2 * np.pi * (f / AC_FRAMES + ph)) * 0.8   # a little stretch
-            prev = None
-            for k in np.linspace(0, length, int(length * 3)):
-                u = k / length
-                off = AC_AMP * u ** 1.4 * np.sin(2 * np.pi * (f / AC_FRAMES + ph) - 2 * np.pi * k / AC_WAVE)
-                x, y = np.array([sx - ax0, sy - ay0], float) + d * k + nrm * off
-                wide = 2 if u < 0.7 else 1                         # the tip tapers to one pixel
-                for side in range(wide):                           # widened across the strip, its shade side second
-                    px_, py_ = np.array([x, y]) + nrm * side * 0.9
-                    xx, yy = int(round(px_)), int(round(py_))
-                    if 0 <= xx < aw and 0 <= yy < ah and not lamp_front[yy, xx]:
-                        if side == 1 and fr[yy, xx, 3]:
-                            continue                                # never shade over a lit edge
-                        ink_i = H[ink] if side == 0 else H['glow' if ink != 'desk' else 'desk_shade']
-                        fr[yy, xx] = (ink_i * 16 + 8, 0, 0, 255)
-        acsheet[:, f * aw:(f + 1) * aw] = fr
+    # (knot on the vent's front lip, length px, jet angle below horizontal, ink, back ink, per-strip numbers): far
+    # strips first, near ones over them; the jet spreads, so the strips fan a little
+    strips = [((366, 71), 19.0, 6, 'paper', 'glow', (3, 7, 11, 2, 0.13)),
+              ((360, 73), 21.0, 14, 'desk', 'desk_shade', (4, 5, 9, 3, 0.47)),
+              ((354, 76), 19.0, 22, 'paper', 'glow', (5, 6, 13, 2, 0.81))]
+
+    def strip_sheet(on, frames):
+        sheet = np.zeros((ah, aw * frames, 4), np.uint8)
+        for f in range(frames):
+            t = f / frames                                         # 0..1 round the loop
+            fr = np.zeros((ah, aw, 4), np.uint8)
+            for (sx, sy), length, tilt_deg, ink, back, (n1, n2, n3, n4, ph) in strips:
+                tp = 2 * np.pi * (t + ph)
+                if on:                                             # streaming in the jet, fluttering
+                    tilt = np.radians(tilt_deg)
+                    gust = 0.65 + 0.35 * np.sin(n2 * tp) * np.cos(n4 * tp + 1.3)
+                    wave = n1 * tp + 0.9 * np.sin(n2 * tp + 0.7)
+                    whip = max(0.0, np.sin(n3 * tp)) ** 6
+                else:                                              # hanging, stirred only by the room's air
+                    tilt = np.radians(84)
+                    gust, wave, whip = 0.0, tp + 0.5 * np.sin(2 * tp), 0.0
+                d = np.array([-np.cos(tilt), np.sin(tilt)])
+                nrm = np.array([-np.sin(tilt), -np.cos(tilt)])
+                for k in np.linspace(0, length * (1.0 if on else 0.8), int(length * 4)):
+                    u = k / length
+                    if on:
+                        swing = (0.6 + 1.5 * gust) * u ** 1.6 * np.sin(wave - 2 * np.pi * k / 8.0)
+                        swing += 2.2 * whip * u ** 4 * np.sin(2 * wave - 2 * np.pi * k / 4.0)
+                        sag = np.array([0.0, (1.6 - gust) * 2.2 * u ** 2])
+                    else:
+                        swing = 0.5 * u ** 1.5 * np.sin(wave)                # a slow sway
+                        sag = np.array([-2.0 * u ** 2, 0.0])                # the paper's own curl, toward the room
+                    twist = np.cos(wave * 0.5 + n4 * tp - 2 * np.pi * k / 11.0) if on else np.cos(1.2 * u + ph * 6)
+                    x, y = np.array([sx - ax0, sy - ay0], float) + d * k + nrm * swing + sag
+                    width = 2 if abs(twist) > 0.45 and u < 0.85 else 1
+                    face = H[ink] if twist > -0.2 else H[back]
+                    for side in range(width):
+                        off_ = (0, side) if on else (side, 0)              # widened across the strip
+                        xx, yy = int(round(x)) + off_[0], int(round(y)) + off_[1]
+                        if 0 <= xx < aw and 0 <= yy < ah and not lamp_front[yy, xx]:
+                            fr[yy, xx] = ((face if side == 0 else H[back]) * 16 + 8, 0, 0, 255)
+            sheet[:, f * aw:(f + 1) * aw] = fr
+        return sheet
+
+    acsheet = strip_sheet(True, AC_FRAMES)
+    Image.fromarray(strip_sheet(False, AC_OFF_FRAMES), 'RGBA').save(OUT / 'ac-streamers-off.png', optimize=True)
     Image.fromarray(acsheet, 'RGBA').save(OUT / 'ac-streamers.png', optimize=True)
 
     def centre(m):
@@ -477,7 +500,8 @@ def main():
                'play': dict(src='tv-play@4x.png', **TV_PLAY)},
         'kotatsu': {'glow': 'light-kotatsu.png', 'plug': 'Kotatsu', 'gap': 'mask-kotatsu_gap.png'},
         'thermostat': {'face': 'mask-thermostat_face.png'},
-        'ac': {'streamers': 'ac-streamers.png', 'box': list(AC_BOX), 'frames': AC_FRAMES},
+        'ac': {'streamers': 'ac-streamers.png', 'box': list(AC_BOX), 'frames': AC_FRAMES,
+               'off': {'streamers': 'ac-streamers-off.png', 'frames': AC_OFF_FRAMES}},
         'speakers': {'leds': ['mask-speaker_l_led.png', 'mask-speaker_r_led.png'],
                      'at': [hot['speaker_l']['anchor'], hot['speaker_r']['anchor']], 'note': 'note@4x.png'},
         'blinds': blinds,
