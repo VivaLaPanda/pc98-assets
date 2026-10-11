@@ -382,21 +382,31 @@ def main():
     lamp_front = crop(cv.masks['lamp_dining'])[ay0:ay0 + ah, ax0:ax0 + aw]
     strips = [((354, 76), 0.0, 'paper'), ((361, 74), 0.37, 'curtain'), ((368, 71), 0.71, 'paper'), ((375, 68), 0.15, 'desk')]   # just under the vent's lip
     acsheet = np.zeros((ah, aw * AC_FRAMES, 4), np.uint8)
+    # each strip a flag in the jet: it streams out of the vent along the airflow (down and into the room), nearly
+    # straight at the knot, and a wave runs from root to tip, growing toward the tip (which flicks most); the loop is
+    # seamless (the wave's phase goes once round per AC_FRAMES)
+    AC_LEN, AC_WAVE, AC_AMP = 13, 9.0, 2.0                        # px: strip length, wavelength, tip swing
+    flow = np.radians(22)                                          # from straight down, toward the room (left)
+    d = np.array([-np.sin(flow), np.cos(flow)])                    # along the jet (x, y)
+    nrm = np.array([d[1], -d[0]])                                  # across it
     for f in range(AC_FRAMES):
         fr = np.zeros((ah, aw, 4), np.uint8)
-        for (sx, sy), ph, ink in strips:
-            t = 2 * np.pi * (f / AC_FRAMES + ph)
-            x, y = float(sx - ax0), float(sy - ay0)
-            ang = np.radians(24 + 14 * np.sin(t))                # from straight down, blown out toward the room (left)
-            for k in range(13):
-                wob = np.radians(32 * np.sin(t * 1.0 - k * 0.9)) * (k / 10) ** 0.8   # a ripple running down the strip
-                a = ang + wob
-                x -= np.sin(a); y += np.cos(a)
-                for dx in (0, 1):                                # a strip 2px wide: its lit edge and its shade
-                    xi, yi = int(round(x)) + dx, int(round(y))
-                    if 0 <= xi < aw and 0 <= yi < ah and not lamp_front[yi, xi]:
-                        ink_i = H[ink] if dx == 0 else H['glow' if ink != 'desk' else 'desk_shade']
-                        fr[yi, xi] = (ink_i * 16 + 8, 0, 0, 255)
+        for si, ((sx, sy), ph, ink) in enumerate(strips):
+            length = AC_LEN + (si % 2) * 2 + np.sin(2 * np.pi * (f / AC_FRAMES + ph)) * 0.8   # a little stretch
+            prev = None
+            for k in np.linspace(0, length, int(length * 3)):
+                u = k / length
+                off = AC_AMP * u ** 1.4 * np.sin(2 * np.pi * (f / AC_FRAMES + ph) - 2 * np.pi * k / AC_WAVE)
+                x, y = np.array([sx - ax0, sy - ay0], float) + d * k + nrm * off
+                wide = 2 if u < 0.7 else 1                         # the tip tapers to one pixel
+                for side in range(wide):                           # widened across the strip, its shade side second
+                    px_, py_ = np.array([x, y]) + nrm * side * 0.9
+                    xx, yy = int(round(px_)), int(round(py_))
+                    if 0 <= xx < aw and 0 <= yy < ah and not lamp_front[yy, xx]:
+                        if side == 1 and fr[yy, xx, 3]:
+                            continue                                # never shade over a lit edge
+                        ink_i = H[ink] if side == 0 else H['glow' if ink != 'desk' else 'desk_shade']
+                        fr[yy, xx] = (ink_i * 16 + 8, 0, 0, 255)
         acsheet[:, f * aw:(f + 1) * aw] = fr
     Image.fromarray(acsheet, 'RGBA').save(OUT / 'ac-streamers.png', optimize=True)
 
