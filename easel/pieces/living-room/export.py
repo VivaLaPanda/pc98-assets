@@ -57,7 +57,7 @@ DAY_COLOR = {'noon': '#fff8f0', 'morning': '#f2f4ff', 'afternoon': '#fff0dc', 'e
 BLINDS = {'Living Room Blinds': (399, 471), 'Dining Room Blinds': (479, 499)}
 # hotspot objects, front to back (where they overlap, the earlier one owns the pixels)
 ORDER = ['lamp_dining', 'lamp_window', 'speaker_r', 'kotatsu', 'lamp_sun', 'lamp_corner', 'speaker_l', 'thermostat',
-         'tv', 'blind_living', 'blind_dining', 'door_bedroom', 'door_outside']
+         'tv', 'ac', 'blind_living', 'blind_dining', 'door_bedroom', 'door_outside']
 PAD = {'thermostat': 3, 'speaker_l': 2, 'speaker_r': 2, 'lamp_corner': 1, 'lamp_window': 1, 'lamp_sun': 2,
        'blind_living': 3, 'blind_dining': 3}
 
@@ -372,6 +372,34 @@ def main():
                 note[j, i] = (255, 255, 255, 255)
     R.x4(Image.fromarray(note, 'RGBA')).save(OUT / 'note@4x.png')
 
+    # the AC's paper streamers (anime's sign of an air conditioner running): four strips tied along its vent, blown out
+    # and down toward the room and fluttering, a loop of AC_FRAMES. Stored as the room's ink indices (red channel
+    # index*16+8, alpha where paper is) so the page colours them with the time of day's registers; never over the arc
+    # lamp in front of the wall
+    AC_BOX = (338, 62, 48, 34)                                   # final coords: x, y, w, h
+    AC_FRAMES = 8
+    ax0, ay0, aw, ah = AC_BOX
+    lamp_front = crop(cv.masks['lamp_dining'])[ay0:ay0 + ah, ax0:ax0 + aw]
+    strips = [((354, 76), 0.0, 'paper'), ((361, 74), 0.37, 'curtain'), ((368, 71), 0.71, 'paper'), ((375, 68), 0.15, 'desk')]   # just under the vent's lip
+    acsheet = np.zeros((ah, aw * AC_FRAMES, 4), np.uint8)
+    for f in range(AC_FRAMES):
+        fr = np.zeros((ah, aw, 4), np.uint8)
+        for (sx, sy), ph, ink in strips:
+            t = 2 * np.pi * (f / AC_FRAMES + ph)
+            x, y = float(sx - ax0), float(sy - ay0)
+            ang = np.radians(24 + 14 * np.sin(t))                # from straight down, blown out toward the room (left)
+            for k in range(13):
+                wob = np.radians(32 * np.sin(t * 1.0 - k * 0.9)) * (k / 10) ** 0.8   # a ripple running down the strip
+                a = ang + wob
+                x -= np.sin(a); y += np.cos(a)
+                for dx in (0, 1):                                # a strip 2px wide: its lit edge and its shade
+                    xi, yi = int(round(x)) + dx, int(round(y))
+                    if 0 <= xi < aw and 0 <= yi < ah and not lamp_front[yi, xi]:
+                        ink_i = H[ink] if dx == 0 else H['glow' if ink != 'desk' else 'desk_shade']
+                        fr[yi, xi] = (ink_i * 16 + 8, 0, 0, 255)
+        acsheet[:, f * aw:(f + 1) * aw] = fr
+    Image.fromarray(acsheet, 'RGBA').save(OUT / 'ac-streamers.png', optimize=True)
+
     def centre(m):
         ys, xs = np.nonzero(m)
         k = int(np.argmin((ys - ys.mean()) ** 2 + (xs - xs.mean()) ** 2))
@@ -395,6 +423,7 @@ def main():
         'lamp_corner': cv.masks['lamp_corner'], 'lamp_window': cv.masks['lamp_window'],
         'speaker_l': cv.masks['speaker_l'], 'speaker_r': cv.masks['speaker_r'],
         'thermostat': cv.masks['thermostat'], 'tv': cv.masks['tv'], 'kotatsu': cv.masks['kotatsu'],
+        'ac': ns['OBJ']['ac'],
         'blind_living': cv.masks['blind_living'] | cloth['blind_living'],
         'blind_dining': cv.masks['blind_dining'] | cloth['blind_dining'],
     }
@@ -438,6 +467,7 @@ def main():
                'play': dict(src='tv-play@4x.png', **TV_PLAY)},
         'kotatsu': {'glow': 'light-kotatsu.png', 'plug': 'Kotatsu', 'gap': 'mask-kotatsu_gap.png'},
         'thermostat': {'face': 'mask-thermostat_face.png'},
+        'ac': {'streamers': 'ac-streamers.png', 'box': list(AC_BOX), 'frames': AC_FRAMES},
         'speakers': {'leds': ['mask-speaker_l_led.png', 'mask-speaker_r_led.png'],
                      'at': [hot['speaker_l']['anchor'], hot['speaker_r']['anchor']], 'note': 'note@4x.png'},
         'blinds': blinds,
@@ -449,7 +479,7 @@ def main():
     # the room at noon with everything off: what the page shows before (or without) the live render
     prgb = np.array([hexrgb(h) for h in pals['noon']])
     noon = prgb[idx].astype(np.uint8)
-    lay = np.asarray(Image.open(OUT / layers['noon']))
+    lay = np.asarray(Image.open(OUT / layers["noon"]))
     gm = lay[..., 3] > 0
     noon[gm] = lay[gm][:, :3]
     R.x4(Image.fromarray(noon)).save(OUT / 'noon@4x.png')
