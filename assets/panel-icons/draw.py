@@ -1,7 +1,8 @@
 """panel-icons: scene icons for the home panel (see brief.md). Run:
     uv run python assets/panel-icons/draw.py [name...]
 
-Drawn straight in SITE letters like assets/recipes-icon/draw.py. Writes out/<name>.png (RGBA, for the light window),
+Drawn straight in SITE letters like assets/recipes-icon/draw.py, except futon and sunrise: those finish polish.py's
+snaps of the image model's redraws (out/redraw/*.txt; see brief.md). Writes out/<name>.png (RGBA, for the light window),
 out/<name>_dark.png (outer outline plum, for the dark window), out/<name>.txt (the grid) and out/sheet.png: every icon
 at 2x on the panel's light and dark windows, and at 6x.
 """
@@ -16,6 +17,7 @@ from pc98 import palette as P
 from pc98.pixel import Grid, rect, ellipse, poly, line, polyline, grow, shrink
 
 OUT = Path(__file__).parent / 'out'
+REDRAW = OUT / 'redraw'      # polish.py's snaps of the image model's redraws (render.py -> polish.py -> finished here)
 LEG = 'site+'
 WINDOWS = [(0xff, 0xff, 0xff), (0x22, 0x22, 0x33)]   # the panel's light (morning, day) and dark (evening, night) windows
 
@@ -154,31 +156,60 @@ def candle():
     return g
 
 
+def redraw(name):
+    """A polish.py snap (48x48 SITE letters) to finish by hand."""
+    return Grid.load(REDRAW / f'{name}.txt')
+
+
+def silhouette(g):
+    """Opaque pixels next to transparency or the grid's edge."""
+    t = np.pad(~g.mask(), 1, constant_values=True)
+    return g.mask() & (t[:-2, 1:-1] | t[2:, 1:-1] | t[1:-1, :-2] | t[1:-1, 2:])
+
+
+def plum_inside(g):
+    """The set's interior lines are plum: black stays on the silhouette only (the snap doubles some outlines)."""
+    return g.fill(g.mask('K') & ~silhouette(g), 'u')
+
+
+def ray(cx, cy, a, r0, r1):
+    """A 2 px ray from radius r0 to r1 at angle a (radians from pointing left, toward up), drawn the pixel-art way:
+    a 2 px run per row when steep, per column when shallow."""
+    m = np.zeros((48, 48), bool)
+    ux, uy = -np.cos(a), -np.sin(a)
+    for t in np.arange(r0, r1, 0.2):
+        x, y = cx + ux * t, cy + uy * t
+        if abs(uy) >= abs(ux):
+            row, col = int(np.floor(y)), int(np.floor(x - 0.5))
+            m[row, col:col + 2] = True
+        else:
+            row, col = int(np.floor(y - 0.5)), int(np.floor(x))
+            m[row:row + 2, col] = True
+    return m
+
+
 def sunrise():
-    g = Grid(48, 48)
-    horizon = 31
-    # rays: short wedges around the half sun
-    cx, cy, r = 23.5, horizon, 13
-    for k in range(9):
-        a = np.pi * (k / 8)
-        x0, y0 = cx - np.cos(a) * (r + 3), cy - np.sin(a) * (r + 3)
-        x1, y1 = cx - np.cos(a) * (r + 8), cy - np.sin(a) * (r + 8)
-        ray = line(g, x0, y0, x1, y1) | line(g, x0 + 1, y0, x1 + 1, y1)
-        g.fill(ray & rect(g, 0, 0, 47, horizon - 1), 'y' if k % 2 == 0 else 'e')
-    sun = ellipse(g, 10, horizon - r, 37, horizon + r) & rect(g, 0, 0, 47, horizon - 1)
-    g.fill(sun, 'y')
-    g.dither(sun & ~ellipse(g, 8, horizon - r - 3, 33, horizon + r - 4), 'y', 'e')
-    g.fill(ellipse(g, 15, horizon - r + 3, 20, horizon - r + 7) & sun, 'W')   # highlight, top left
-    g.edge(sun, 'h', 'tl'); g.edge(sun, 'r', 'r')
-    # the sea: periwinkle bands with white glints, darker toward the bottom right
-    sea = rect(g, 2, horizon, 45, 44) & ellipse(g, -8, 20, 55, 60)
-    g.fill(sea, 'p')
-    g.dither(sea & rect(g, 0, 39, 47, 47), 'p', 'u')
-    g.dither(sea & rect(g, 30, horizon + 1, 47, 47), 'p', 'u', pattern='q1')
-    for (x0, x1, y) in ((12, 35, horizon + 2), (15, 32, horizon + 4), (18, 29, horizon + 6), (20, 27, horizon + 8)):
-        g.fill(rect(g, x0, y, x1, y) & sea, 'y' if y < horizon + 5 else 'W')
-    g.fill(rect(g, 2, horizon, 45, horizon) & sea, 'W')
-    shade(g, sea)
+    """Up and at 'em: the sun half risen behind Mount Fuji's summit. render.py fuji2 -> polish.py (nano-banana-pro,
+    beside the real icons) -> fal_r2_fuji2_0, finished here: interior lines plum; the model's ragged rays redrawn
+    mirror-symmetric, long ones yellow with a peach shadow edge (so they hold on the white window), short ones peach;
+    a lit edge down the left slope."""
+    g = redraw('r2_fuji2_0')
+    cx, cy = 24.0, 24.0                                                       # the sun's centre (radius ~10.5)
+    yy, xx = np.mgrid[0:48, 0:48]
+    g.clear((np.hypot(xx + 0.5 - cx, yy + 0.5 - cy) > 12.5) & (yy < 23))      # the model's rays
+    plum_inside(g)
+    for k in range(5):                                                        # left half and the top; mirrored
+        a = np.radians(14 + k * 19)
+        long = k % 2 == 0
+        m = ray(cx, cy, a, 14, 22.5 if long else 19.5)
+        for mm in ([m] if k == 4 else [m, m[:, ::-1]]):
+            mm = mm & ~g.mask()
+            g.fill(mm, 'y' if long else 'e')
+            if long:
+                g.edge(mm, 'e', 'br')
+    # the lit left slope: white just inside the plum outline, from the snow line to the foot
+    slope = g.mask() & ~silhouette(g) & np.roll(silhouette(g), 1, 1) & (yy >= 31) & (yy <= 41) & (xx < 20)
+    g.fill(slope & g.mask('p'), 'W')
     return g
 
 
@@ -240,51 +271,37 @@ def moon():
     return g
 
 
+ZZZ = ['''
+    ppp
+    .p.
+    ppp
+''', '''
+    pppp
+    ..p.
+    .p..
+    pppp
+''', '''
+    ppppp
+    ...p.
+    ..p..
+    .p...
+    ppppp
+''']
+
+
 def futon():
-    g = Grid(48, 48)
-    # a futon seen from the foot, a little above: the mattress slab, a pillow at the head, the quilt pulled up
-    top = poly(g, [(9, 18), (38, 18), (45, 34), (2, 34)])
-    front = rect(g, 2, 35, 45, 40)
-    g.fill(top, 'W'); g.fill(front, 'a'); g.dither(rect(g, 34, 35, 45, 40), 'a', 'u')
-    shade(g, top | front)
-    pil = ellipse(g, 14, 15, 33, 24)
-    g.fill(pil, 'W'); g.dither(pil & rect(g, 27, 0, 47, 47), 'W', 'a'); shade(g, pil)
-    g.fill(line(g, 17, 19, 30, 19), 'a')                                      # the pillow's seam
-    # the quilt: periwinkle with the kotatsu's pink plaid, the sheet turned down over its top edge
-    quilt = poly(g, [(7, 25), (40, 25), (46, 36), (46, 43), (1, 43), (1, 36)])
-    g.fill(quilt, 'p')
-    for x0, x1 in ((12, 9), (19, 17), (28, 30), (35, 38)):                     # plaid lines toward the viewer
-        g.fill(line(g, x0, 26, x1, 36) & quilt, 'k')
-        g.fill(line(g, x1, 37, x1, 42) & quilt, 'k')
-    for y in (30, 39):
-        g.fill(rect(g, 0, y, 47, y) & quilt, 'k')
-    g.fill(g.mask('k') & rect(g, 0, 39, 47, 39) & rect(g, 0, 0, 47, 47), 'k')
-    g.dither(quilt & rect(g, 33, 26, 47, 47), 'p', 'u', pattern='q1')
-    g.dither(quilt & rect(g, 0, 37, 47, 43), 'p', 'u', pattern='q1')
-    sheet_fold = poly(g, [(7, 25), (40, 25), (41, 27), (6, 27)])
-    g.fill(sheet_fold, 'W'); g.fill(rect(g, 0, 28, 47, 28) & quilt, 'u')
-    g.edge(quilt, 'u', 'tl'); g.edge(quilt, 'K', 'br')
-    g.fill(rect(g, 1, 36, 46, 36) & quilt, 'u')                               # the quilt's edge over the slab
-    # zzz, periwinkle with a plum shadow so they read on the light and the dark window
-    for x, y, z in ((27, 1, '''
-        ppppp
-        ...p.
-        ..p..
-        .p...
-        ppppp
-    '''), (34, 7, '''
-        pppp
-        ..p.
-        .p..
-        pppp
-    '''), (40, 12, '''
-        ppp
-        .p.
-        ppp
-    ''')):
-        zg = Grid.parse(z)
-        g.paste(zg.recolor({'p': 'u'}), x + 1, y + 1)
-        g.paste(zg, x, y)
+    """Bedtime: a futon laid out for the night, the kotatsu's periwinkle quilt and pink plaid over a sleeper, a big
+    pillow, zzz. render.py futon -> polish.py (nano-banana-pro, beside the real icons) -> fal_r1_futon_0, finished
+    here: interior lines plum; the right side's drape pulled in off the grid's edge (so dark() can plum it); the zzz
+    redrawn to rise from the pillow small to big, plain periwinkle (a plum shadow muddles 3 px glyphs)."""
+    g = redraw('r1_futon_0')
+    yy, xx = np.mgrid[0:48, 0:48]
+    g.clear((xx >= 30) & (yy <= 14) & g.mask('p'))                            # the model's zzz
+    g.clear(xx == 47)
+    g.fill(g.mask() & (xx == 46), 'K')
+    plum_inside(g)
+    for z, (x, y) in zip(ZZZ, ((32, 8), (36, 4), (41, 0))):
+        g.paste(Grid.parse(z), x, y)
     return g
 
 
@@ -364,7 +381,8 @@ ICONS['bowl'] = donburi
 
 def dark(g):
     """For the panel's #222233 window: the outer outline's black turns plum, so shadow-side edges don't dissolve."""
-    outer = g.mask('K') & grow(~g.mask(), 1)
+    outside = np.pad(~g.mask(), 1, constant_values=True)    # beyond the grid's edge counts as outside too
+    outer = g.mask('K') & grow(outside, 1)[1:-1, 1:-1]
     return g.copy().fill(outer, 'u')
 
 
