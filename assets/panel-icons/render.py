@@ -1,8 +1,9 @@
-"""panel-icons, step 1 (the home-icon flow): the futon and the sunrise modelled and lit, then quantized to the set's tone
-ramps, as assets/home-icon/render.py did for the kotatsu. Drafts drawn from primitives read as clip art (the futon as a
-cake, the sunrise as a sun over a box); a lit model gives the quilt and the land real volume for polish.py to redraw.
+"""panel-icons, step 1 (the home-icon flow): the futon, the sunrise and the mug modelled and lit, then quantized to the
+set's tone ramps, as assets/home-icon/render.py did for the kotatsu. Drafts drawn from primitives read as clip art (the
+futon as a cake, the sunrise as a sun over a box); a lit model gives the quilt and the land real volume for polish.py
+to redraw.
 Run:
-    uv run python assets/panel-icons/render.py [futon hills fuji fuji2 saddle dome]
+    uv run python assets/panel-icons/render.py [futon hills fuji fuji2 saddle dome mug mugsun mugtea]
 
 Writes out/render/<name>_render.png (the lit model at 8x, flat colours, mint background: the second reference for the
 image model) and out/render/<name>.png (48x48 in SITE letters with the set's outline and plum overlap lines: the draft
@@ -18,6 +19,9 @@ Models (cm, y up, the camera looks down from the front; light from the top left,
 - saddle: the sun over a broad shallow saddle of hills (not redrawn: too wide and flat at 48 px).
 - dome (no Fuji): the sun half risen behind a rounded hill (not redrawn: a lumpy periwinkle hill under a sun reads as
   the "partly cloudy" weather icon).
+- mug, mugsun (chosen), mugtea: Slow morning. A chunky periwinkle mug a little from above, rounded white lip, white
+  inside, coffee, a loop handle on the right, three wisps of steam; a pink heart, a small sun or a tea bag's tag
+  printed on the front. The body gets a wrap light (LIFT) so its shadow side ends in the checker, not a plum half.
 """
 import sys
 from dataclasses import dataclass
@@ -47,14 +51,26 @@ RAMP = {
     'hill': ['W', 'p', ('p', 'u'), 'u'],
     'far': ['a', 'a', ('a', 'u'), 'u'],
     'snow': ['W', 'W', ('W', 'a'), 'a'],
+    'mug': ['W', 'p', ('p', 'u'), 'u'],
+    'glaze': ['W', 'W', ('W', 'a'), 'a'],     # the mug's white inside and lip
+    'coffee': ['n', 'r', ('r', 'u'), 'u'],
+    'heart': ['k', 'k', ('k', 'h'), 'h'],
+    'badge': ['y', 'y', ('y', 'e'), 'e'],     # a small sun printed on the mug
+    'tag': ['k', 'k', ('k', 'h'), 'h'],       # a tea bag's tag
+    'string': ['W', 'a', 'a', 'a'],
+    'steam': ['W', 'W', 'W', 'W'],
 }
 MATS = list(RAMP)
-WHITE = {'quilt': 0.97, 'plaid': 0.97, 'hill': 0.975, 'far': 0.975, 'sun': 0.96}   # white only this lit (else 0.86)
-NO_OUTLINE = ('ray', 'ray2')
+WHITE = {'quilt': 0.97, 'plaid': 0.97, 'hill': 0.975, 'far': 0.975, 'sun': 0.96, 'mug': 0.95}   # else 0.86
+NO_OUTLINE = ('ray', 'ray2', 'steam')
+DECAL = {'plaid': 'quilt', 'heart': 'mug', 'badge': 'mug'}   # thin prints: win a cell at a third of it
+LIFT = {'mug': 0.22}          # wrap light: the mug's shadow side stays checker, not plum
 FLAT = {   # the lit model's preview colours
     'quilt': (136, 153, 255), 'plaid': (255, 170, 187), 'collar': (255, 255, 255), 'sheet': (238, 238, 238),
     'pillow': (255, 255, 255), 'sun': (255, 238, 85), 'ray': (255, 238, 85), 'ray2': (255, 170, 119),
     'hill': (136, 153, 255), 'far': (187, 170, 187), 'snow': (255, 255, 255),
+    'mug': (136, 153, 255), 'glaze': (255, 255, 255), 'coffee': (153, 68, 34), 'heart': (255, 170, 187),
+    'badge': (255, 238, 85), 'tag': (255, 170, 187), 'string': (238, 238, 238), 'steam': (255, 255, 255),
 }
 LIGHT = np.array([-0.6, 0.62, -0.5]); LIGHT /= np.linalg.norm(LIGHT)    # camera space: from the top left, toward us
 
@@ -244,6 +260,115 @@ def saddle_parts() -> list:
     return [heightfield(xs, zs, H, mat, land), sun(c, 28), rays(c, 35, 58)]
 
 
+MUG_R, MUG_H, MUG_T = 25.0, 42.0, 3.2             # outer radius, height, wall thickness
+FILL = MUG_H - 6.0                                # the coffee's level
+
+
+def ring(r: float, y0: float, y1: float, mat: str, inward: bool = False, n: int = 900) -> Part:
+    """A vertical cylinder wall about the y axis."""
+    th, y = np.meshgrid(np.linspace(-np.pi, np.pi, 2 * n), np.linspace(y0, y1, n // 2))
+    nrm = np.stack([np.cos(th), np.zeros_like(th), np.sin(th)], -1) * (-1 if inward else 1)
+    Pg = np.stack([r * np.cos(th), y, r * np.sin(th)], -1)
+    return Part(Pg.reshape(-1, 3), nrm.reshape(-1, 3), np.full(th.size, mid(mat)))
+
+
+def mug_print(th: np.ndarray, y: np.ndarray, kind: str) -> np.ndarray:
+    """A print on the mug's front (th = -pi/2 faces the camera): u across in cm (rightward), v up."""
+    u = MUG_R * (th + np.pi / 2 + 0.08)
+    v = y - MUG_H * 0.46
+    if kind == 'heart':
+        x, z = u / 7.5, v / 7.5 + 0.15
+        return (x ** 2 + z ** 2 - 1) ** 3 - x ** 2 * z ** 3 <= 0
+    if kind == 'badge':
+        r, a = np.hypot(u, v), np.arctan2(v, u)
+        spokes = (np.abs(((a / (2 * np.pi / 8)) + 0.5) % 1 - 0.5) < 0.16) & (r > 7.5) & (r < 11)
+        return (r < 5.8) | spokes
+    return np.zeros_like(u, bool)
+
+
+def mug_body(kind: str) -> Part:
+    """The outer wall with its rounded foot, a print on the front."""
+    R, f = MUG_R, 4.0
+    wall = ring(R, f, MUG_H - MUG_T / 2, 'mug', n=1000)
+    th = np.arctan2(wall.pts[:, 2], wall.pts[:, 0])
+    wall.mat = np.where(mug_print(th, wall.pts[:, 1], kind), mid(kind) if kind in DECAL else mid('mug'), wall.mat)
+    th, a = np.meshgrid(np.linspace(-np.pi, np.pi, 1600), np.linspace(0, np.pi / 2, 60))
+    rr = R - f + f * np.sin(a)
+    foot = np.stack([rr * np.cos(th), f - f * np.cos(a), rr * np.sin(th)], -1)
+    fn = np.stack([np.sin(a) * np.cos(th), -np.cos(a), np.sin(a) * np.sin(th)], -1)
+    return Part(np.concatenate([wall.pts, foot.reshape(-1, 3)]), np.concatenate([wall.nrm, fn.reshape(-1, 3)]),
+                np.concatenate([wall.mat, np.full(th.size, mid('mug'))]))
+
+
+def lip() -> Part:
+    """The rounded white lip: the upper half of a torus round the rim."""
+    rc, rt, yc = MUG_R - MUG_T / 2, MUG_T / 2, MUG_H - MUG_T / 2
+    th, v = np.meshgrid(np.linspace(-np.pi, np.pi, 1800), np.linspace(0, np.pi, 40))
+    pts = np.stack([(rc + rt * np.cos(v)) * np.cos(th), yc + rt * np.sin(v), (rc + rt * np.cos(v)) * np.sin(th)], -1)
+    nrm = np.stack([np.cos(v) * np.cos(th), np.sin(v), np.cos(v) * np.sin(th)], -1)
+    return Part(pts.reshape(-1, 3), nrm.reshape(-1, 3), np.full(th.size, mid('glaze')))
+
+
+def coffee(mat: str = 'coffee') -> Part:
+    r, th = np.meshgrid(np.linspace(0, MUG_R - MUG_T, 200), np.linspace(-np.pi, np.pi, 900))
+    pts = np.stack([r * np.cos(th), np.full_like(r, FILL), r * np.sin(th)], -1)
+    return Part(pts.reshape(-1, 3), np.repeat([[0, 1.0, 0]], r.size, 0), np.full(r.size, mid(mat)))
+
+
+def handle() -> Part:
+    """A loop on the right: a tube round an upright ellipse, in the plane of the mug's axis."""
+    cx, cy, rx, ry, rt = MUG_R + 2.0, MUG_H * 0.5, 10.5, 12.0, 3.6
+    u, v = np.meshgrid(np.linspace(-np.pi, np.pi, 700), np.linspace(-np.pi, np.pi, 120))
+    nm = np.stack([ry * np.cos(u), rx * np.sin(u)], -1)
+    nm /= np.linalg.norm(nm, axis=-1, keepdims=True)
+    n3 = np.stack([np.cos(v) * nm[..., 0], np.cos(v) * nm[..., 1], np.sin(v)], -1)
+    c = np.stack([cx + rx * np.cos(u), cy + ry * np.sin(u), np.zeros_like(u)], -1)
+    pts = (c + rt * n3).reshape(-1, 3)
+    keep = pts[:, 0] > MUG_R * 0.85
+    return Part(pts[keep], n3.reshape(-1, 3)[keep], np.full(keep.sum(), mid('mug')))
+
+
+def steam(xs0: list, rise: float = 20.0, width: float = 3.4) -> Part:
+    """Wisps rising from the coffee: flat S-curved ribbons in the mug's mid plane, thinning as they rise."""
+    pts = []
+    for k, x0 in enumerate(xs0):
+        t, w = np.meshgrid(np.linspace(0, 1, 300), np.linspace(-0.5, 0.5, 30))
+        y = MUG_H + 5 + t * rise
+        x = x0 + 2.6 * np.sin(2 * np.pi * t * 1.1) + w * width * (1 - 0.45 * t)
+        pts.append(np.stack([x, y, np.zeros_like(x)], -1).reshape(-1, 3))
+    p = np.concatenate(pts)
+    return Part(p, np.repeat([[0, 0, -1.0]], len(p), 0), np.full(len(p), mid('steam')), glow=1.0)
+
+
+def teabag() -> list:
+    """A tea bag's string over the front-left of the lip and its pink tag hanging on the outside."""
+    th0 = -np.pi / 2 - 0.42
+    y = np.linspace(MUG_H * 0.62, MUG_H + 0.4, 200)
+    w = np.linspace(-0.9, 0.9, 6)
+    Y, W_ = np.meshgrid(y, w)
+    th = th0 + W_ / MUG_R
+    r = MUG_R + 0.5
+    s_pts = np.stack([r * np.cos(th), Y, r * np.sin(th)], -1).reshape(-1, 3)
+    s_nrm = np.stack([np.cos(th), np.zeros_like(th), np.sin(th)], -1).reshape(-1, 3)
+    u, v = np.meshgrid(np.linspace(-4.5, 4.5, 60), np.linspace(MUG_H * 0.30, MUG_H * 0.62, 60))
+    th = th0 + u / MUG_R
+    r = MUG_R + 0.8
+    t_pts = np.stack([r * np.cos(th), v, r * np.sin(th)], -1).reshape(-1, 3)
+    t_nrm = np.stack([np.cos(th), np.zeros_like(th), np.sin(th)], -1).reshape(-1, 3)
+    return [Part(s_pts, s_nrm, np.full(len(s_pts), mid('string'))), Part(t_pts, t_nrm, np.full(len(t_pts), mid('tag')))]
+
+
+def mug_parts(kind: str = 'heart') -> list:
+    """Slow morning: a chunky periwinkle mug, white inside, coffee, three wisps of steam; a pink heart (mug), a small
+    sun (mugsun) or a tea bag's tag (mugtea) on the front."""
+    parts = [mug_body(kind), lip(), ring(MUG_R - MUG_T, FILL, MUG_H - MUG_T / 2, 'glaze', inward=True), handle()]
+    parts.append(coffee())
+    if kind == 'tag':
+        parts += teabag()
+    parts.append(steam([-9.0, 0.0, 9.0]))
+    return parts
+
+
 def dome_parts() -> list:
     """Round 2 alternate without Fuji: the sun half risen behind the broad, convex top of a rounded hill (no dip to pinch
     it), a nearer hill at the right."""
@@ -305,7 +430,6 @@ def render(parts: list, az: float, el: float, margin: float = 1.0) -> tuple:
 
 def to_icon(mat: np.ndarray, lit: np.ndarray, dep: np.ndarray, obj: np.ndarray) -> np.ndarray:
     g = np.full((N, N), '.', dtype='<U1')
-    qi, pi = mid('quilt'), mid('plaid')
     for j in range(N):
         for i in range(N):
             m = mat[j * SS:(j + 1) * SS, i * SS:(i + 1) * SS].ravel()
@@ -314,10 +438,13 @@ def to_icon(mat: np.ndarray, lit: np.ndarray, dep: np.ndarray, obj: np.ndarray) 
                 continue
             vals, cnt = np.unique(m[m >= 0], return_counts=True)
             k = vals[np.argmax(cnt)]
-            if k in (qi, pi):
-                nq, npl = (m == qi).sum(), (m == pi).sum()
-                k = pi if npl > 0.34 * (nq + npl) else qi
-            L = l[m == k].mean()
+            for dec, base in DECAL.items():
+                di, bi = mid(dec), mid(base)
+                if k in (bi, di):
+                    nb, nd = (m == bi).sum(), (m == di).sum()
+                    if nd:
+                        k = di if nd > 0.34 * (nb + nd) else bi
+            L = l[m == k].mean() + LIFT.get(MATS[k], 0.0)
             ramp = RAMP[MATS[k]]
             tone = ramp[0] if L > WHITE.get(MATS[k], 0.86) else ramp[1] if L > 0.55 else ramp[2] if L > 0.32 else ramp[3]
             if isinstance(tone, tuple):
@@ -424,6 +551,9 @@ SCENES = {
     'fuji2': (fuji2_parts, 0, 10, 1.0, []),
     'saddle': (saddle_parts, 0, 14, 1.0, []),
     'dome': (dome_parts, 0, 12, 1.0, []),
+    'mug': (lambda: mug_parts('heart'), -8, 24, 1.0, []),
+    'mugsun': (lambda: mug_parts('badge'), -8, 24, 1.0, []),
+    'mugtea': (lambda: mug_parts('tag'), -8, 24, 1.0, []),
 }
 
 if __name__ == '__main__':

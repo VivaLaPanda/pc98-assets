@@ -92,6 +92,24 @@ PROMPTS = {
         'into plum shadow on the right through 50% checkerboard dithering, a plum line where the summit crosses the '
         'sun. It must read at a glance as a calm sunrise, not an eruption and not a sun over a box. ' + LINE),
 }
+MUG = SHEET + (
+    'Its bottom-right icon is a rough quantized draft of a new icon, a cosy mug of morning coffee, steaming; the '
+    'second image is the 3D render it came from (a chunky periwinkle mug seen a little from above, a rounded white '
+    'lip and white inside, dark coffee, a loop handle on the right, {print} on its front, three wisps of steam '
+    'rising). Redraw ONLY the bottom-right icon of the first image as a finished icon of exactly that mug, as the '
+    'same artist who drew the kotatsu, the computer and the cd would: '
+    + GRID.format(colours='periwinkle #8899ff, plum #664477, mauve grey #bbaabb, white, black, rust #994422, tan '
+                          '#cc8844, {colours}') +
+    'the mug periwinkle and round, lit on the left with a white highlight strip down its left side and falling into '
+    'plum shadow on the right through 50% checkerboard dithering; the lip a white ring, the coffee a rust-brown oval '
+    'with a tan highlight and one small white glint; the handle a thick round loop with a clear hole; {print2}; three '
+    'wavy wisps of steam rising from the coffee, white with a mauve grey edge on their right so they also show on '
+    'a white background. It must read at a glance as a warm drink to sip slowly, not a pot, a bucket or a bowl. '
+    + LINE)
+PROMPTS['mug'] = MUG.format(print='a pink heart', colours='pink #ffaabb, hot pink #ff0066',
+                            print2='a small pink heart printed on the front, its right half hot pink')
+PROMPTS['mugsun'] = MUG.format(print='a small yellow sun', colours='yellow #ffee55, peach #ffaa77',
+                               print2='a small yellow sun with short rays printed on the front, peach on its right')
 
 
 def cell(im: Image.Image) -> Image.Image:

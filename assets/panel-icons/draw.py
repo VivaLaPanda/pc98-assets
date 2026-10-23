@@ -1,10 +1,10 @@
 """panel-icons: scene icons for the home panel (see brief.md). Run:
     uv run python assets/panel-icons/draw.py [name...]
 
-Drawn straight in SITE letters like assets/recipes-icon/draw.py, except futon and sunrise: those finish polish.py's
-snaps of the image model's redraws (out/redraw/*.txt; see brief.md). Writes out/<name>.png (RGBA, for the light window),
-out/<name>_dark.png (outer outline plum, for the dark window), out/<name>.txt (the grid) and out/sheet.png: every icon
-at 2x on the panel's light and dark windows, and at 6x.
+Drawn straight in SITE letters like assets/recipes-icon/draw.py, except futon, sunrise and mug: those finish
+polish.py's snaps of the image model's redraws (out/redraw/*.txt; see brief.md). Writes out/<name>.png (RGBA, for the
+light window), out/<name>_dark.png (outer outline plum, for the dark window), out/<name>.txt (the grid) and
+out/sheet.png: every icon at 2x on the panel's light and dark windows, and at 6x.
 """
 import sys
 from pathlib import Path
@@ -305,6 +305,57 @@ def futon():
     return g
 
 
+WISP = '''
+    ..Wp
+    .Wp.
+    Wp..
+    Wp..
+    .Wp.
+    ..Wp
+    ..Wp
+    .Wp.
+    Wp..
+'''
+
+
+def sun_print(g, cx, cy):
+    """A small sun printed on the mug: a 9 px disc, white glint top left, peach on its shadow edge; 2 px yellow rays a
+    pixel off it (peach rays vanished into the body's checker on the dark window)."""
+    disc = ellipse(g, cx - 4, cy - 4, cx + 4, cy + 4)
+    g.fill(disc, 'y')
+    g.edge(disc, 'e', 'br')
+    g[cx - 2, cy - 2] = 'W'; g[cx - 1, cy - 2] = 'W'; g[cx - 2, cy - 1] = 'W'
+    for dx, dy in ((0, -1), (-1, 0), (1, 0), (0, 1), (-1, -1), (1, -1), (-1, 1), (1, 1)):
+        r = (6, 7) if dx == 0 or dy == 0 else (5, 6)
+        for k in r:
+            g[cx + dx * k, cy + dy * k] = 'y'
+
+
+def mug():
+    """Slow morning: a mug of coffee, steaming, a small sun printed on it. render.py mugsun -> polish.py
+    (nano-banana-pro, beside the real icons) -> fal_r1_mugsun_0, finished here: interior lines plum; the steam redrawn
+    as three 2 px S-curves, white with a periwinkle shadow edge (plain white vanishes on the light window, mauve is
+    faint there); the sun print redrawn round with even rays; the model's scattered glints replaced by one in the
+    coffee's lit back left."""
+    g = redraw('r1_mugsun_0')
+    yy, xx = np.mgrid[0:48, 0:48]
+    g.clear(yy <= 9)                                                          # the model's steam
+    g.fill((yy == 10) & g.mask('Wa'), 'u')                                    # ... where it crossed the lip
+    for x, y in ((18, 12), (19, 12), (24, 12), (12, 13), (18, 13), (23, 13)):
+        g[x, y] = 'a'                                                         # ... and the inner wall
+    coffee = (yy >= 16) & (yy <= 20) & (xx >= 7) & (xx <= 30)
+    g.fill(coffee & g.mask('W') & ~((xx <= 8) | (xx >= 29)), 'r')             # stray glints (not the lip)
+    g[12, 17] = 'W'; g[13, 17] = 'W'
+    body = rect(g, 9, 28, 28, 43) & g.mask('yekaW')                           # the model's print
+    g.fill(body, 'p')
+    g.fill(body & (xx >= 19) & ((xx + yy) % 2 == 1), 'u')                     # the body's checker, in phase
+    sun_print(g, 17, 34)
+    plum_inside(g)
+    for x, y in ((11, 1), (17, 0), (23, 1)):
+        g.patch(x, y, WISP)
+    return g
+
+
 def wait():
     g = Grid(48, 48)
     # the Windows hourglass: two caps, two glass bulbs, sand running
@@ -375,7 +426,7 @@ def unknown():
     return g
 
 
-ICONS = {f.__name__: f for f in (candle, sunrise, door, moon, futon, wait, offline, unknown)}
+ICONS = {f.__name__: f for f in (candle, mug, sunrise, door, moon, futon, wait, offline, unknown)}
 ICONS['bowl'] = donburi
 
 
