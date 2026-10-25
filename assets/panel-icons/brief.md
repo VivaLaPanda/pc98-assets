@@ -9,7 +9,7 @@ Ids come from home-mcp's scenes.toml (`icon` field); the panel looks icons up by
 | id | scene | when | drawn as |
 |---|---|---|---|
 | candle | Awake: all lights warmest 30 %, bedroom 10 %, blinds stay down | morning, lights all off | a lit candle on a saucer |
-| mug | Slow morning: a gentler Up and at 'em, "like Chill time" for 5 am to sunrise + 1 h (scene in home-mcp) | morning | a steaming mug of coffee, a small sun printed on it |
+| mug | Slow morning (dropped 2026-10-23; out of the firmware 2026-10-25, the art kept here) | - | a steaming mug of coffee, a small sun printed on it |
 | sunrise | Up and at 'em: all lights 5500 K 100 %, blinds up | morning | the sun half risen behind Mount Fuji's summit |
 | door | Heading out | morning, day | a front door open onto daylight |
 | bowl | Dinnertime: full warm light, The Sun at min, music 20 % | evening | the katsudon donburi (recipes-icon's runner-up) |
